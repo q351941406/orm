@@ -22,7 +22,7 @@ class MainController extends BaseController
     //保存私聊发送记录
     public function test(Request $request)
     {
-
+        return response()->json(['mes'=>'测试']);
     }
     // 初始化es的数据
     public function es_install_data(Request $request)
