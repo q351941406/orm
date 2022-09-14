@@ -130,7 +130,7 @@ class MainController extends BaseController
                 );
             }
             if (!$model){
-                Log::error("入库失败{$request->all()}");
+                Log::error("入库失败",$request->all());
             }
             Log::info('入库成功',$model->toArray());
             return response()->json($model);

@@ -32,6 +32,8 @@ class installESJob implements ShouldQueue
     }
 
     /**
+     * cd app
+     * php artisan queue:listen --timeout=500000
      * Execute the job.
      * php artisan queue:work --timeout=60
      * @return void
