@@ -22,6 +22,7 @@ class MainController extends BaseController
     //保存私聊发送记录
     public function test(Request $request)
     {
+//        dd(1111);
         return response()->json(['mes'=>'测试']);
     }
     // 初始化es的数据
@@ -124,6 +125,9 @@ class MainController extends BaseController
                         'status' => $data['status']
                     ]
                 );
+            }
+            if (!$model){
+                Log::error("入库失败{$request->all()}");
             }
             Log::info('入库成功',$model->toArray());
             return response()->json($model);
