@@ -31,17 +31,18 @@ class MainController extends BaseController
     public function es_install_data(Request $request)
     {
         $type = $request->input('type');
-        if ($type == 0){
-            $engine_name = 'channels';
-            Channel::chunk(100, function ($models) use ($engine_name) {
-                installESJob::dispatch($engine_name,$models);
-            });
-        }else if ($type == 1) {
-            $engine_name = 'groups';
-            Group::chunk(100, function ($models) use ($engine_name) {
-                installESJob::dispatch($engine_name,$models);
-            });
-        }
+        installESJob::dispatch($type);
+//        if ($type == 0){
+//            $engine_name = 'channels';
+//            Channel::chunk(100, function ($models) use ($engine_name) {
+//                installESJob::dispatch($engine_name,$models);
+//            });
+//        }else if ($type == 1) {
+//            $engine_name = 'groups';
+//            Group::chunk(100, function ($models) use ($engine_name) {
+//                installESJob::dispatch($engine_name,$models);
+//            });
+//        }
         return response()->json(['mes'=>'添加到队列完毕']);
 
     }

@@ -18,7 +18,7 @@ class installESJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $models;
+    protected $type;
     protected $engine_name;
 
     /**
@@ -26,10 +26,9 @@ class installESJob implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($engine_name,$models)
+    public function __construct($type)
     {
-        $this->models = $models;
-        $this->engine_name = $engine_name;
+        $this->type = $type;
     }
 
     /**
@@ -39,6 +38,17 @@ class installESJob implements ShouldQueue
      */
     public function handle()
     {
-        ElasticSearchApi::es_install_data($this->engine_name,$this->models);
+        if ($this->type == 0){
+            $engine_name = 'channels';
+            Channel::chunk(100, function ($models) use ($engine_name) {
+                ElasticSearchApi::es_install_data($engine_name,$models);
+            });
+        }else if ($this->type == 1) {
+            $engine_name = 'groups';
+            Group::chunk(100, function ($models) use ($engine_name) {
+                ElasticSearchApi::es_install_data($engine_name,$models);
+            });
+        }
+
     }
 }
