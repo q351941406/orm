@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+
 
 class Account extends Model
 {
@@ -22,6 +24,11 @@ class Account extends Model
      */
 //    protected $table = 'citys';
 
+    /**
+     * 模型的“引导”方法。
+     *
+     * @return void
+     */
 
 
 }

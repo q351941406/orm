@@ -8,7 +8,7 @@ class InstallES extends Command
 {
     /**
      * The name and signature of the console command.
-     * 案例 php artisan es:install 1
+     * 案例 php artisan es:install 0
      * @var string
      */
     protected $signature = 'es:install {type=0}';

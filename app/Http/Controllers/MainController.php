@@ -24,7 +24,35 @@ class MainController extends BaseController
     //保存私聊发送记录
     public function test(Request $request)
     {
-//        dd(1111);
+
+//        $model = Channel::updateOrCreate(
+//            ['invite_link' => '222222'],
+//            [
+//                'name' => '22222',
+//                'info' => '222222',
+//                'subscribers' => 1,
+//                'status' => 0
+//            ]
+//        );
+//        $model = new Account;
+////        $model = Account::firstWhere('phone',$phone);
+//        $model->phone = '111111';
+//        $model->session_string = '111111';
+//        $model->save();
+
+
+
+//        $model = Account::updateOrCreate(
+//            ['phone' => '111111'],
+//            [
+//                'session_string' => '222222'
+//            ]
+//        );
+
+        $model = Channel::find(134348);
+
+        $model->delete();
+
         return response()->json(['mes'=>'测试']);
     }
     // 初始化es的数据
@@ -35,13 +63,11 @@ class MainController extends BaseController
             $engine_name = 'channels';
             Channel::chunk(100, function ($models) use ($engine_name) {
                 installESJob::dispatch($engine_name,$models);
-//                ElasticSearchApi::es_install_data($engine_name,$models);
             });
         }else if ($type == 1) {
             $engine_name = 'groups';
             Group::chunk(100, function ($models) use ($engine_name) {
                 installESJob::dispatch($engine_name,$models);
-//                ElasticSearchApi::es_install_data($engine_name,$models);
             });
         }
         return response()->json(['mes'=>'添加到队列完毕']);
