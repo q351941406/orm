@@ -20,15 +20,18 @@ class installESJob implements ShouldQueue
 
     protected $type;
     protected $engine_name;
+    protected $models;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($type)
+    public function __construct($engine_name,$models)
     {
-        $this->type = $type;
+//        $this->type = $type;
+        $this->engine_name = $engine_name;
+        $this->models = $models;
     }
 
     /**
@@ -40,17 +43,18 @@ class installESJob implements ShouldQueue
      */
     public function handle()
     {
-        if ($this->type == 0){
-            $engine_name = 'channels';
-            Channel::chunk(100, function ($models) use ($engine_name) {
-                ElasticSearchApi::es_install_data($engine_name,$models);
-            });
-        }else if ($this->type == 1) {
-            $engine_name = 'groups';
-            Group::chunk(100, function ($models) use ($engine_name) {
-                ElasticSearchApi::es_install_data($engine_name,$models);
-            });
-        }
+        ElasticSearchApi::es_install_data($this->engine_name,$this->models);
+//        if ($this->type == 0){
+//            $engine_name = 'channels';
+//            Channel::chunk(100, function ($models) use ($engine_name) {
+//                ElasticSearchApi::es_install_data($engine_name,$models);
+//            });
+//        }else if ($this->type == 1) {
+//            $engine_name = 'groups';
+//            Group::chunk(100, function ($models) use ($engine_name) {
+//                ElasticSearchApi::es_install_data($engine_name,$models);
+//            });
+//        }
 
     }
 }
