@@ -16,7 +16,7 @@ use App\Http\Controllers\MainController;
 
 
 Route::post('/test', [\App\Http\Controllers\MainController::class, 'test']);
-Route::post('/es_install_data', [\App\Http\Controllers\MainController::class, 'es_install_data']);
+Route::any('/es_install_data', [\App\Http\Controllers\MainController::class, 'es_install_data']);
 Route::post('/get_not_keyword_enemy_for_enemyBot', [\App\Http\Controllers\MainController::class, 'get_not_keyword_enemy_for_enemyBot']);
 Route::post('/get_unsend_for_text', [\App\Http\Controllers\MainController::class, 'get_unsend_for_text']);
 

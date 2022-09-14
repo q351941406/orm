@@ -28,14 +28,12 @@ class MainController extends BaseController
         return response()->json(['mes'=>'测试']);
     }
     // 初始化es的数据
-    public function es_install_data(Request $request)
+    public function es_install_data(Request $request,$type)
     {
-        $type = $request->input('type');
-//        installESJob::dispatch($type);
+//        $type = $request->input('type');
         if ($type == 0){
             $engine_name = 'channels';
             Channel::chunk(100, function ($models) use ($engine_name) {
-//                Log::error('1');
                 installESJob::dispatch($engine_name,$models);
 //                ElasticSearchApi::es_install_data($engine_name,$models);
             });
