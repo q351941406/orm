@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Group;
 use App\Models\Channel;
 use App\Models\Account;
+use App\Jobs\installESJob;
+
 class MainController extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
@@ -32,15 +34,15 @@ class MainController extends BaseController
         if ($type == 0){
             $engine_name = 'channels';
             Channel::chunk(100, function ($models) use ($engine_name) {
-                ElasticSearchApi::es_install_data($engine_name,$models);
+                installESJob::dispatch($engine_name,$models);
             });
         }else if ($type == 1) {
             $engine_name = 'groups';
             Group::chunk(100, function ($models) use ($engine_name) {
-                ElasticSearchApi::es_install_data($engine_name,$models);
+                installESJob::dispatch($engine_name,$models);
             });
         }
-        return response()->json(['mes'=>'完毕']);
+        return response()->json(['mes'=>'添加到队列完毕']);
 
     }
     //保存私聊发送记录
