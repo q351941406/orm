@@ -28,7 +28,7 @@ class Group extends Model
     protected static function booted()
     {
         static::saved(function ($model) {
-            ElasticSearchApi::es_install_data('channels',[$model->toArray()]);
+            ElasticSearchApi::es_install_data('groups',[$model->toArray()]);
         });
         static::deleted(function ($model) {
             ElasticSearchApi::delete_data('groups',[$model->id]);
