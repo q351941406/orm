@@ -16,7 +16,8 @@ use App\Models\Group;
 use App\Models\Channel;
 use App\Models\Account;
 use App\Jobs\installESJob;
-
+use DateTime;
+use DateTimeZone;
 class MainController extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
@@ -24,37 +25,30 @@ class MainController extends BaseController
     //保存私聊发送记录
     public function test(Request $request)
     {
+        $channels = Channel::
+        whereIn('id', [10,11])
+            ->get();
 
-//        $model = Channel::updateOrCreate(
-//            ['invite_link' => '222222'],
-//            [
-//                'name' => '22222',
-//                'info' => '222222',
-//                'subscribers' => 1,
-//                'status' => 0
-//            ]
-//        );
-//        $model = new Account;
-////        $model = Account::firstWhere('phone',$phone);
-//        $model->phone = '111111';
-//        $model->session_string = '111111';
+        $d = $channels->toArray();
+        foreach ($d as &$x){
+//            $x['subscribers'] = 1111;
+            // 移除调某些key
+            $x = array_diff_key($x, ['updated_at' => "", "created_at" => "",'deleted_at'=>'']);
+        }
+
+        $a = Channel::upsert($d,[]);
+        dd($a);
+//        $model = Channel::find(43908);
+////        $model->last_msg_date = "2016-10-15T08:00:10+00:00";
+//        $model->last_msg_date_normalize = 0.42764284;
+//
 //        $model->save();
 
 
 
-//        $model = Account::updateOrCreate(
-//            ['phone' => '111111'],
-//            [
-//                'session_string' => '222222'
-//            ]
-//        );
-
-        $model = Channel::find(134348);
-
-        $model->delete();
-
         return response()->json(['mes'=>'测试']);
     }
+
     // 初始化es的数据
     public function es_install_data(Request $request,$type)
     {
@@ -62,17 +56,37 @@ class MainController extends BaseController
         if ($type == 0){
             $engine_name = 'channels';
             Channel::chunk(100, function ($models) use ($engine_name) {
-                installESJob::dispatch($engine_name,$models);
+                installESJob::dispatch($engine_name,$models->toArray());
             });
         }else if ($type == 1) {
             $engine_name = 'groups';
             Group::chunk(100, function ($models) use ($engine_name) {
-                installESJob::dispatch($engine_name,$models);
+                installESJob::dispatch($engine_name,$models->toArray());
             });
         }
         return response()->json(['mes'=>'添加到队列完毕']);
-
     }
+    // 批量更新mysql再添加修改es到队列
+    public function batch_update(Request $request)
+    {
+        $type = $request->input('type');
+        $data = $request->input('data');
+        if ($type == 0){
+            $engine_name = 'channels';
+            foreach ($data as &$x){
+                // 移除调某些key
+                $x = array_diff_key($x, ['updated_at' => "", "created_at" => "",'deleted_at'=>'']);
+            }
+            $a = Channel::upsert($data,[]);
+            installESJob::dispatch($engine_name,$data);
+
+        }else if ($type == 1) {
+            $engine_name = 'groups';
+
+        }
+        return response()->json(['mes'=>'添加到队列完毕']);
+    }
+
     //保存私聊发送记录
     public function save_private_keyword(Request $request)
     {

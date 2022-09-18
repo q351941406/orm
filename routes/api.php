@@ -25,3 +25,4 @@ Route::post('/save_private_keyword', [\App\Http\Controllers\MainController::clas
 Route::post('/get_uninsertLink', [\App\Http\Controllers\MainController::class, 'get_uninsertLink']);
 Route::post('/get_account', [\App\Http\Controllers\MainController::class, 'get_account']);
 Route::post('/update_account_status', [\App\Http\Controllers\MainController::class, 'update_account_status']);
+Route::post('/batch_update', [\App\Http\Controllers\MainController::class, 'batch_update']);
