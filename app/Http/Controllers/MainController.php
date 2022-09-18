@@ -74,6 +74,10 @@ class MainController extends BaseController
         if ($type == 0){
             $engine_name = 'channels';
             foreach ($data as &$x){
+                if ($x['last_msg_date']){//es只接收DATE_RFC3339格式的data字段
+                    $timeStamp = strtotime($x['last_msg_date']);
+                    $x['last_msg_date'] = date(DATE_RFC3339,$timeStamp);
+                }
                 // 移除调某些key
                 $x = array_diff_key($x, ['updated_at' => "", "created_at" => "",'deleted_at'=>'']);
             }
