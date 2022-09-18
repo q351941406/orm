@@ -29,10 +29,10 @@ class Channel extends Model
         // updateOrCreate、save、update、Create都会调
         static::saved(function ($model) {
 //            Log::debug('111111');
-//            if ($model->last_msg_date){//es只接收DATE_RFC3339格式的data字段
-//                $timeStamp = strtotime($model->last_msg_date);
-//                $model->last_msg_date = date(DATE_RFC3339,$timeStamp);
-//            }
+            if ($model->last_msg_date){//es只接收DATE_RFC3339格式的data字段
+                $timeStamp = strtotime($model->last_msg_date);
+                $model->last_msg_date = date(DATE_RFC3339,$timeStamp);
+            }
             ElasticSearchApi::es_install_data('channels',[$model->toArray()]);
         });
         static::deleted(function ($model) {
