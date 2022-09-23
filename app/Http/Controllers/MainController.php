@@ -26,18 +26,21 @@ class MainController extends BaseController
     public function test(Request $request)
     {
         $channels = Channel::
-        whereIn('id', [10,11])
+        whereIn('id', [19])
             ->get();
 
         $d = $channels->toArray();
         foreach ($d as &$x){
-//            $x['subscribers'] = 1111;
+            if ($x['last_msg_date']){//es只接收DATE_RFC3339格式的data字段
+                $timeStamp = strtotime($x['last_msg_date']);
+                $x['last_msg_date'] = date(DATE_RFC3339,$timeStamp);
+            }
             // 移除调某些key
             $x = array_diff_key($x, ['updated_at' => "", "created_at" => "",'deleted_at'=>'']);
         }
-
-        $a = Channel::upsert($d,[]);
-        dd($a);
+        ElasticSearchApi::es_install_data('channels',$d);
+//        $a = Channel::upsert($d,[]);
+        dd($d);
 //        $model = Channel::find(43908);
 ////        $model->last_msg_date = "2016-10-15T08:00:10+00:00";
 //        $model->last_msg_date_normalize = 0.42764284;
@@ -46,7 +49,7 @@ class MainController extends BaseController
 
 
 
-        return response()->json(['mes'=>'测试']);
+        return response()->json($d);
     }
 
     // 初始化es的数据
@@ -83,7 +86,6 @@ class MainController extends BaseController
             }
             $a = Channel::upsert($data,[]);
             installESJob::dispatch($engine_name,$data);
-
         }else if ($type == 1) {
             $engine_name = 'groups';
 
@@ -197,5 +199,19 @@ class MainController extends BaseController
         $model->status = $status;
         $model->save();
         return response()->json($model);
+    }
+    // 删除链接
+    public function link_delete(Request $request){
+        $type = $request->input('type');
+        $link = $request->input('link');
+        if ($type == 0){
+            $channel = Channel::firstWhere('invite_link',$link);
+            $channel->delete();
+        }
+        if ($type == 1){
+            $group = Group::firstWhere('invite_link',$link);
+            $group->delete();
+        }
+        return response()->json(['msg'=>'删除完毕']);
     }
 }
