@@ -27,3 +27,4 @@ Route::post('/get_account', [\App\Http\Controllers\MainController::class, 'get_a
 Route::post('/update_account_status', [\App\Http\Controllers\MainController::class, 'update_account_status']);
 Route::post('/batch_update', [\App\Http\Controllers\MainController::class, 'batch_update']);
 Route::post('/link_delete', [\App\Http\Controllers\MainController::class, 'link_delete']);
+Route::post('/update', [\App\Http\Controllers\MainController::class, 'update']);

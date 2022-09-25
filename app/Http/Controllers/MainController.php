@@ -25,22 +25,36 @@ class MainController extends BaseController
     //保存私聊发送记录
     public function test(Request $request)
     {
-        $channels = Channel::
-        whereIn('id', [19])
-            ->get();
 
-        $d = $channels->toArray();
-        foreach ($d as &$x){
-            if ($x['last_msg_date']){//es只接收DATE_RFC3339格式的data字段
-                $timeStamp = strtotime($x['last_msg_date']);
-                $x['last_msg_date'] = date(DATE_RFC3339,$timeStamp);
-            }
-            // 移除调某些key
-            $x = array_diff_key($x, ['updated_at' => "", "created_at" => "",'deleted_at'=>'']);
-        }
-        ElasticSearchApi::es_install_data('channels',$d);
-//        $a = Channel::upsert($d,[]);
-        dd($d);
+//        $model = Channel::updateOrCreate(
+//            ['id' => 10],
+//            [
+//                'id'=>10,
+//                'subscribers' => 7160,
+//            ]
+//        );
+
+//        $model = Channel::where('id',10)->update(['subscribers'=>7158]);
+//        $model->save();
+
+
+
+//        $channels = Channel::
+//        whereIn('id', [19])
+//            ->get();
+//
+//        $d = $channels->toArray();
+//        foreach ($d as &$x){
+//            if ($x['last_msg_date']){//es只接收DATE_RFC3339格式的data字段
+//                $timeStamp = strtotime($x['last_msg_date']);
+//                $x['last_msg_date'] = date(DATE_RFC3339,$timeStamp);
+//            }
+//            // 移除调某些key
+//            $x = array_diff_key($x, ['updated_at' => "", "created_at" => "",'deleted_at'=>'']);
+//        }
+//        ElasticSearchApi::es_install_data('channels',$d);
+////        $a = Channel::upsert($d,[]);
+//        dd($d);
 //        $model = Channel::find(43908);
 ////        $model->last_msg_date = "2016-10-15T08:00:10+00:00";
 //        $model->last_msg_date_normalize = 0.42764284;
@@ -49,7 +63,7 @@ class MainController extends BaseController
 
 
 
-        return response()->json($d);
+//        return response()->json($model);
     }
 
     // 初始化es的数据
@@ -146,7 +160,7 @@ class MainController extends BaseController
         return response()->json($result);
     }
 
-    // 更新信息
+    // 数据入库
     public function updateInfo(Request $request)
     {
         $data = $request->all()['data'];
@@ -182,6 +196,26 @@ class MainController extends BaseController
             Log::info('入库成功',$model->toArray());
             return response()->json($model);
         }
+    }
+    // 也是更新消息,根据传递进来的参数更新
+    public function update(Request $request)
+    {
+        $data = $request->input('data');
+        $type = $request->input('type');
+        $model = null;
+        if ($type == 0){
+            $model = Channel::updateOrCreate(
+                ['id' => $data['id']],
+                $data
+            );
+        }
+        if ($type == 1){
+            $model = Group::updateOrCreate(
+                ['id' => $data['id']],
+                $data
+            );
+        }
+        return response()->json($model);
     }
     // 获取一个账号
     public function get_account(Request $request)

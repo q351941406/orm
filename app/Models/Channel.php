@@ -26,7 +26,7 @@ class Channel extends Model
 
     protected static function booted()
     {
-        // updateOrCreate、save、update、Create都会调
+        // updateOrCreate、save、Create都会调
         static::saved(function ($model) {
 //            Log::debug('111111');
             if ($model->last_msg_date){//es只接收DATE_RFC3339格式的data字段
