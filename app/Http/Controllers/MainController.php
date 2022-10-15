@@ -224,6 +224,16 @@ class MainController extends BaseController
         $model = Account::firstWhere('status',$status);
         return response()->json($model);
     }
+    // 保存一个账号
+    public function save_account(Request $request)
+    {
+        $phone = $request->all()['phone'];
+        $model = Account::updateOrCreate(
+            ['phone' => $phone],
+            $request->all()
+        );
+        return response()->json($model);
+    }
     // 更改账号状态
     public function update_account_status(Request $request)
     {
