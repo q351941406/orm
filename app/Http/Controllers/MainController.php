@@ -26,13 +26,13 @@ class MainController extends BaseController
     public function test(Request $request)
     {
 
-
-        $model = Group::updateOrCreate(
-            ['id' => 21],
-            [
-                'msg_average_interval' => 9,
-            ]
-        );
+        dd($request->all());
+//        $model = Group::updateOrCreate(
+//            ['id' => 21],
+//            [
+//                'msg_average_interval' => 9,
+//            ]
+//        );
 
 //        $model = Channel::where('id',10)->update(['subscribers'=>7158]);
 //        $model->save();
