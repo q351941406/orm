@@ -26,13 +26,13 @@ class MainController extends BaseController
     public function test(Request $request)
     {
 
-//        $model = Channel::updateOrCreate(
-//            ['id' => 10],
-//            [
-//                'id'=>10,
-//                'subscribers' => 7160,
-//            ]
-//        );
+
+        $model = Group::updateOrCreate(
+            ['id' => 21],
+            [
+                'msg_average_interval' => 9,
+            ]
+        );
 
 //        $model = Channel::where('id',10)->update(['subscribers'=>7158]);
 //        $model->save();
@@ -83,7 +83,7 @@ class MainController extends BaseController
         }
         return response()->json(['mes'=>'添加到队列完毕']);
     }
-    // 批量更新mysql再添加修改es到队列
+    // 批量更新mysql再添加修改es到队列,暂时没用上
     public function batch_update(Request $request)
     {
         $type = $request->input('type');

@@ -12,6 +12,12 @@ class ElasticSearchApi {
 
         $urlSuffix = "/api/as/v1/engines/{$engine_name}/documents";
         $data = $models;
+        // 修改提升值，不然衰减函数无法生效，让它值变小，
+        if($engine_name === 'groups'){
+            foreach ($data as &$x){
+                $x['msg_average_interval'] = 1/ $x['msg_average_interval'];
+            }
+        }
         $response = ElasticSearchApi::post($urlSuffix,$data);
         foreach ($response as $x){
             if (count($x['errors']) > 0){
