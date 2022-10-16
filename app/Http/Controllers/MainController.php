@@ -204,16 +204,21 @@ class MainController extends BaseController
         $type = $request->input('type');
         $model = null;
         if ($type == 0){
-            $model = Channel::updateOrCreate(
-                ['id' => $data['id']],
-                $data
-            );
+            $model = Channel::withoutEvents(function () use ($data) {
+                return Channel::updateOrCreate(
+                    ['id' => $data['id']],
+                    $data
+                );
+            });
         }
         if ($type == 1){
-            $model = Group::updateOrCreate(
-                ['id' => $data['id']],
-                $data
-            );
+            $model = Channel::withoutEvents(function () use ($data) {
+                return Group::updateOrCreate(
+                    ['id' => $data['id']],
+                    $data
+                );
+            });
+
         }
         return response()->json($model);
     }
