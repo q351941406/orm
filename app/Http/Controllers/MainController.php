@@ -212,7 +212,7 @@ class MainController extends BaseController
             });
         }
         if ($type == 1){
-            $model = Channel::withoutEvents(function () use ($data) {
+            $model = Group::withoutEvents(function () use ($data) {
                 return Group::updateOrCreate(
                     ['id' => $data['id']],
                     $data
