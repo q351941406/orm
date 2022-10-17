@@ -29,3 +29,4 @@ Route::post('/batch_update', [\App\Http\Controllers\MainController::class, 'batc
 Route::post('/link_delete', [\App\Http\Controllers\MainController::class, 'link_delete']);
 Route::post('/update', [\App\Http\Controllers\MainController::class, 'update']);
 Route::post('/save_account', [\App\Http\Controllers\MainController::class, 'save_account']);
+Route::get('/get_need_update_groupList', [\App\Http\Controllers\MainController::class, 'get_need_update_groupList']);

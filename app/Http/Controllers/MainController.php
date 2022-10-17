@@ -26,7 +26,6 @@ class MainController extends BaseController
     public function test(Request $request)
     {
 
-        dd($request->all());
 //        $model = Group::updateOrCreate(
 //            ['id' => 21],
 //            [
@@ -262,5 +261,36 @@ class MainController extends BaseController
             $group->delete();
         }
         return response()->json(['msg'=>'删除完毕']);
+    }
+    // 获取需要更新的群的列表
+    public function get_need_update_groupList(Request $request){
+        $isDirty = $request->input('isDirty');
+        $page = $request->input('page');
+        $limit = $request->input('limit');
+        // 过滤掉15天都没消息的、广告污染成都很严重的群，这种垃圾群留到某个特地时间更新
+        $days = date("y-m-d H:i:s",strtotime('-15 day'));//x天前
+        $ad_dirtyWhere = null;
+        $last_msg_date = null;
+        if ($isDirty == 0){
+            $ad_dirtyWhere = ['ad_dirty', '>', 0.5];
+            $last_msg_date = ['last_msg_date', '<', $days];
+        }else {
+            $ad_dirtyWhere = ['ad_dirty', '<', 0.5];
+            $last_msg_date = ['last_msg_date', '>', $days];
+        }
+
+        $models = Group::
+        where(function($query) use ($ad_dirtyWhere){
+            $query
+                ->where('ad_dirty',null)
+                ->orWhere($ad_dirtyWhere);
+            })
+            ->where(function($query)use ($last_msg_date) {
+                $query
+                    ->where('last_msg_date', null)
+                    ->orWhere($last_msg_date);
+            })
+            ->paginate($limit,'*','page',$page);
+        return response()->json($models);
     }
 }
