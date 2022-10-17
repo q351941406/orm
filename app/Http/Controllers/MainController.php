@@ -283,13 +283,14 @@ class MainController extends BaseController
         where(function($query) use ($ad_dirtyWhere){
             $query
                 ->where('ad_dirty',null)
-                ->orWhere($ad_dirtyWhere);
+                ->orWhere([$ad_dirtyWhere]);
             })
             ->where(function($query)use ($last_msg_date) {
                 $query
                     ->where('last_msg_date', null)
-                    ->orWhere($last_msg_date);
+                    ->orWhere([$last_msg_date]);
             })
+//            ->toSql();
             ->paginate($limit,'*','page',$page);
         return response()->json($models);
     }
