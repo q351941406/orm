@@ -285,7 +285,7 @@ class MainController extends BaseController
                 ->where('ad_dirty',null)
                 ->orWhere([$ad_dirtyWhere]);
             })
-            ->where(function($query)use ($last_msg_date) {
+            ->orWhere(function($query)use ($last_msg_date) {
                 $query
                     ->where('last_msg_date', null)
                     ->orWhere([$last_msg_date]);
