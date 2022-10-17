@@ -274,24 +274,35 @@ class MainController extends BaseController
         if ($isDirty == 0){
             $ad_dirtyWhere = ['ad_dirty', '>', 0.5];
             $last_msg_date = ['last_msg_date', '<', $days];
+            $models = Group::
+            where(function($query) use ($ad_dirtyWhere){
+                $query
+                    ->where('ad_dirty',null)
+                    ->orWhere([$ad_dirtyWhere]);
+            })
+                ->orWhere(function($query)use ($last_msg_date) {
+                    $query
+                        ->where('last_msg_date', null)
+                        ->orWhere([$last_msg_date]);
+                })
+                ->paginate($limit,'*','page',$page);
+            return response()->json($models);
         }else {
             $ad_dirtyWhere = ['ad_dirty', '<', 0.5];
             $last_msg_date = ['last_msg_date', '>', $days];
-        }
-
-        $models = Group::
-        where(function($query) use ($ad_dirtyWhere){
-            $query
-                ->where('ad_dirty',null)
-                ->orWhere([$ad_dirtyWhere]);
-            })
-            ->orWhere(function($query)use ($last_msg_date) {
+            $models = Group::
+            where(function($query) use ($ad_dirtyWhere){
                 $query
-                    ->where('last_msg_date', null)
-                    ->orWhere([$last_msg_date]);
+                    ->where('ad_dirty',null)
+                    ->orWhere([$ad_dirtyWhere]);
             })
-//            ->toSql();
-            ->paginate($limit,'*','page',$page);
-        return response()->json($models);
+                ->where(function($query)use ($last_msg_date) {
+                    $query
+                        ->where('last_msg_date', null)
+                        ->orWhere([$last_msg_date]);
+                })
+                ->paginate($limit,'*','page',$page);
+            return response()->json($models);
+        }
     }
 }
