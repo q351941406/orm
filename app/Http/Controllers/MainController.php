@@ -26,6 +26,15 @@ class MainController extends BaseController
     public function test(Request $request)
     {
 
+        $array = [
+            1, 2, 3, 4, 5
+        ];
+
+        $result = array_chunk($array, 2, false);
+        foreach ($result as $key => $value) {
+            dd($value);
+        }
+
 //        $model = Group::updateOrCreate(
 //            ['id' => 21],
 //            [
@@ -76,8 +85,11 @@ class MainController extends BaseController
             });
         }else if ($type == 1) {
             $engine_name = 'groups';
-            Group::chunk(100, function ($models) use ($engine_name) {
-                installESJob::dispatch($engine_name,$models->toArray());
+            Group::chunk(10000, function ($models) use ($engine_name) {
+                $lessModels = array_chunk($models, 100, false);
+                foreach ($lessModels as $key => $value) {
+                    installESJob::dispatch($engine_name,$value->toArray());
+                }
             });
         }
         return response()->json(['mes'=>'添加到队列完毕']);
