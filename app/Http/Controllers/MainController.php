@@ -86,9 +86,9 @@ class MainController extends BaseController
         }else if ($type == 1) {
             $engine_name = 'groups';
             Group::chunk(10000, function ($models) use ($engine_name) {
-                $lessModels = array_chunk($models, 100, false);
+                $lessModels = array_chunk($models->toArray(), 100, false);
                 foreach ($lessModels as $key => $value) {
-                    installESJob::dispatch($engine_name,$value->toArray());
+                    installESJob::dispatch($engine_name,$value);
                 }
             });
         }
