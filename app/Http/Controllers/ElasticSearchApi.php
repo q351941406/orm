@@ -19,6 +19,10 @@ class ElasticSearchApi {
             }
         }
         $response = ElasticSearchApi::post($urlSuffix,$data);
+        if (!$response){
+            Log::error('ES没有返回内容');
+            return;
+        }
         foreach ($response as $x){
             if (count($x['errors']) > 0){
                 Log::error('数据上传错误',$x['errors']);
