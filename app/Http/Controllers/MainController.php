@@ -26,14 +26,16 @@ class MainController extends BaseController
     public function test(Request $request)
     {
 
-        $array = [
-            1, 2, 3, 4, 5
-        ];
-
-        $result = array_chunk($array, 2, false);
-        foreach ($result as $key => $value) {
-            dd($value);
-        }
+        $engine_name = 'groups';
+        $a = Group::limit(10)->get();
+        installESJob::dispatch($engine_name,$a->toArray());
+        dd($a);
+        Group::chunk(10000, function ($models) use ($engine_name) {
+            $lessModels = array_chunk($models->toArray(), 100, false);
+            foreach ($lessModels as $key => $value) {
+                installESJob::dispatch($engine_name,$value);
+            }
+        });
 
 //        $model = Group::updateOrCreate(
 //            ['id' => 21],
