@@ -26,16 +26,20 @@ class MainController extends BaseController
     public function test(Request $request)
     {
 
-        $engine_name = 'groups';
-        $a = Group::limit(10)->get();
-        installESJob::dispatch($engine_name,$a->toArray());
-        dd($a);
-        Group::chunk(10000, function ($models) use ($engine_name) {
-            $lessModels = array_chunk($models->toArray(), 100, false);
-            foreach ($lessModels as $key => $value) {
-                installESJob::dispatch($engine_name,$value);
-            }
-        });
+//        $d = Group::get()->count();
+//        dd($d);
+//        $engine_name = 'groups';
+////        $a = Group::limit(10)->get();
+////        installESJob::dispatch($engine_name,$a->toArray());
+////        dd($a);
+//        Group::chunk(10000, function ($models) use ($engine_name) {
+//            Log::debug(1);
+//            $lessModels = array_chunk($models->toArray(), 100, false);
+//            foreach ($lessModels as $key => $value) {
+//                installESJob::dispatch($engine_name,$value);
+//            }
+////            dd($lessModels);
+//        });
 
 //        $model = Group::updateOrCreate(
 //            ['id' => 21],
@@ -87,7 +91,7 @@ class MainController extends BaseController
             });
         }else if ($type == 1) {
             $engine_name = 'groups';
-            Group::chunk(10000, function ($models) use ($engine_name) {
+            Group::chunk(1000, function ($models) use ($engine_name) {
                 $lessModels = array_chunk($models->toArray(), 100, false);
                 foreach ($lessModels as $key => $value) {
                     installESJob::dispatch($engine_name,$value);
