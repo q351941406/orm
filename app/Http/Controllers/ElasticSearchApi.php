@@ -21,7 +21,7 @@ class ElasticSearchApi {
                 $x['msg_average_interval'] = 1/ $x['msg_average_interval'];
             }
         }
-
+//        return $data;
         $response = ElasticSearchApi::post($urlSuffix,$data);
         if (!$response){
             Log::error('ES没有返回内容');

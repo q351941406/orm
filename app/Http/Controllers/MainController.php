@@ -33,19 +33,20 @@ class MainController extends BaseController
 ////        installESJob::dispatch($engine_name,$a->toArray());
 ////        dd($a);
         $a = Group::
-        where([
-            ['last_msg_date','!=',null],
-            ['last_msg_date_normalize','!=',null],
-            ['msg_average_interval','!=',null],
-            ['ad_dirty','!=',null]
-        ])
-//        where('last_msg_date','!=',null)
+//        where([
+//            ['last_msg_date','!=',null],
+//            ['last_msg_date_normalize','!=',null],
+//            ['msg_average_interval','!=',null],
+//            ['ad_dirty','!=',null]
+//        ])
+        where('msg_average_interval',0)
 //            ->where('last_msg_date_normalize','!=',null)
 //            ->where('msg_average_interval','!=',null)
 //            ->where('ad_dirty','!=',null)
-            ->limit(100)
+            ->limit(10000)
             ->get();
-        return response()->json($a);
+//        $a = ElasticSearchApi::es_install_data($engine_name,$a->toArray());
+//        return response()->json($a);
 //        ->chunk(10000, function ($models) use ($engine_name) {
 ////            Log::debug(1);
 ////            $lessModels = array_chunk($models->toArray(), 100, false);
