@@ -28,17 +28,31 @@ class MainController extends BaseController
 
 //        $d = Group::get()->count();
 //        dd($d);
-//        $engine_name = 'groups';
+        $engine_name = 'groups';
 ////        $a = Group::limit(10)->get();
 ////        installESJob::dispatch($engine_name,$a->toArray());
 ////        dd($a);
-//        Group::chunk(10000, function ($models) use ($engine_name) {
-//            Log::debug(1);
-//            $lessModels = array_chunk($models->toArray(), 100, false);
-//            foreach ($lessModels as $key => $value) {
-//                installESJob::dispatch($engine_name,$value);
-//            }
-////            dd($lessModels);
+        $a = Group::
+        where([
+            ['last_msg_date','!=',null],
+            ['last_msg_date_normalize','!=',null],
+            ['msg_average_interval','!=',null],
+            ['ad_dirty','!=',null]
+        ])
+//        where('last_msg_date','!=',null)
+//            ->where('last_msg_date_normalize','!=',null)
+//            ->where('msg_average_interval','!=',null)
+//            ->where('ad_dirty','!=',null)
+            ->limit(100)
+            ->get();
+        return response()->json($a);
+//        ->chunk(10000, function ($models) use ($engine_name) {
+////            Log::debug(1);
+////            $lessModels = array_chunk($models->toArray(), 100, false);
+////            foreach ($lessModels as $key => $value) {
+////                installESJob::dispatch($engine_name,$value);
+////            }
+//////            dd($lessModels);
 //        });
 
 //        $model = Group::updateOrCreate(
@@ -91,7 +105,14 @@ class MainController extends BaseController
             });
         }else if ($type == 1) {
             $engine_name = 'groups';
-            Group::chunk(1000, function ($models) use ($engine_name) {
+            Group::
+            where([
+                ['last_msg_date','!=',null],
+                ['last_msg_date_normalize','!=',null],
+                ['msg_average_interval','!=',null],
+                ['ad_dirty','!=',null]
+            ])
+            ->chunk(10000, function ($models) use ($engine_name) {
                 $lessModels = array_chunk($models->toArray(), 100, false);
                 foreach ($lessModels as $key => $value) {
                     installESJob::dispatch($engine_name,$value);

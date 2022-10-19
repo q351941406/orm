@@ -15,9 +15,13 @@ class ElasticSearchApi {
         // 修改提升值，不然衰减函数无法生效，让它值变小，
         if($engine_name === 'groups'){
             foreach ($data as &$x){
+                if ($x['msg_average_interval'] == 0){// 1不能除以0，所以这里把最高发送频率的0设置成1
+                    $x['msg_average_interval'] = 1;
+                }
                 $x['msg_average_interval'] = 1/ $x['msg_average_interval'];
             }
         }
+
         $response = ElasticSearchApi::post($urlSuffix,$data);
         if (!$response){
             Log::error('ES没有返回内容');
