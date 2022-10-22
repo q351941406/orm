@@ -32,21 +32,20 @@ class MainController extends BaseController
 ////        $a = Group::limit(10)->get();
 ////        installESJob::dispatch($engine_name,$a->toArray());
 ////        dd($a);
-        $a = Group::
-//        where([
-//            ['last_msg_date','!=',null],
-//            ['last_msg_date_normalize','!=',null],
-//            ['msg_average_interval','!=',null],
-//            ['ad_dirty','!=',null]
-//        ])
-        where('msg_average_interval',0)
+        $a = Channel::
+        where([
+            ['last_msg_date','!=',null],
+            ['last_msg_date_normalize','!=',null],
+            ['average','!=',null],
+        ])
+//        where('msg_average_interval',0)
 //            ->where('last_msg_date_normalize','!=',null)
 //            ->where('msg_average_interval','!=',null)
 //            ->where('ad_dirty','!=',null)
-            ->limit(10000)
-            ->get();
+//            ->limit(10000)
+            ->count();
 //        $a = ElasticSearchApi::es_install_data($engine_name,$a->toArray());
-//        return response()->json($a);
+        return response()->json($a);
 //        ->chunk(10000, function ($models) use ($engine_name) {
 ////            Log::debug(1);
 ////            $lessModels = array_chunk($models->toArray(), 100, false);
@@ -101,13 +100,20 @@ class MainController extends BaseController
 //        $type = $request->input('type');
         if ($type == 0){
             $engine_name = 'channels';
-            Channel::chunk(100, function ($models) use ($engine_name) {
-                installESJob::dispatch($engine_name,$models->toArray());
+            Channel::where([
+                ['last_msg_date','!=',null],
+                ['last_msg_date_normalize','!=',null],
+                ['average','!=',null]
+            ])
+            ->chunk(10000, function ($models) use ($engine_name) {
+                $lessModels = array_chunk($models->toArray(), 100, false);
+                foreach ($lessModels as $key => $value) {
+                    installESJob::dispatch($engine_name,$value);
+                }
             });
         }else if ($type == 1) {
             $engine_name = 'groups';
-            Group::
-            where([
+            Group::where([
                 ['last_msg_date','!=',null],
                 ['last_msg_date_normalize','!=',null],
                 ['msg_average_interval','!=',null],
