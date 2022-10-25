@@ -32,16 +32,17 @@ class MainController extends BaseController
 ////        $a = Group::limit(10)->get();
 ////        installESJob::dispatch($engine_name,$a->toArray());
 ////        dd($a);
-        $a = Channel::
-        where([
-            ['last_msg_date','!=',null],
-            ['last_msg_date_normalize','!=',null],
-            ['average','!=',null],
-        ])
-//        where('msg_average_interval',0)
-//            ->where('last_msg_date_normalize','!=',null)
-//            ->where('msg_average_interval','!=',null)
-//            ->where('ad_dirty','!=',null)
+        $a = Group::
+//        where([
+//            ['last_msg_date','!=',null],
+//            ['last_msg_date_normalize','!=',null],
+//            ['average','!=',null],
+//        ])
+        where('msg_average_interval','!=',null)
+            ->where('last_msg_date_normalize','!=',null)
+            ->where('msg_average_interval','!=',null)
+            ->where('ad_dirty','!=',null)
+            ->where('sender_count','!=',null)
 //            ->limit(10000)
             ->count();
 //        $a = ElasticSearchApi::es_install_data($engine_name,$a->toArray());
@@ -117,7 +118,8 @@ class MainController extends BaseController
                 ['last_msg_date','!=',null],
                 ['last_msg_date_normalize','!=',null],
                 ['msg_average_interval','!=',null],
-                ['ad_dirty','!=',null]
+                ['ad_dirty','!=',null],
+                ['sender_count','!=',null]
             ])
             ->chunk(10000, function ($models) use ($engine_name) {
                 $lessModels = array_chunk($models->toArray(), 100, false);
