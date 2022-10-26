@@ -18,6 +18,7 @@ use App\Models\Account;
 use App\Jobs\installESJob;
 use DateTime;
 use DateTimeZone;
+// 0 = 频道，1 = 群组
 class MainController extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
@@ -214,7 +215,7 @@ class MainController extends BaseController
         $model = null;
         if ($request->all()['code'] == 0) {
 
-            if ($data['type'] == 1) {
+            if ($data['type'] == 0) {
                 $model = Channel::updateOrCreate(
                     ['invite_link' => $data['link']],
                     [
@@ -225,7 +226,7 @@ class MainController extends BaseController
                     ]
                 );
             }
-            if ($data['type'] == 2) {
+            if ($data['type'] == 1) {
                 $model = Group::updateOrCreate(
                     ['invite_link' => $data['link']],
                     [
