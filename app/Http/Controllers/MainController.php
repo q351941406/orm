@@ -216,27 +216,31 @@ class MainController extends BaseController
         if ($request->all()['code'] == 0) {
 
             if ($data['type'] == 0) {
-                $model = Channel::updateOrCreate(
-                    ['invite_link' => $data['link']],
-                    [
-                        'name' => $data['title'],
-                        'info' => $data['description'],
-                        'subscribers' => $data['number'],
-                        'status' => $data['status']
-                    ]
-                );
+                $model = Channel::withoutEvents(function () use ($data) {
+                    return Channel::updateOrCreate(
+                        ['invite_link' => $data['link']],
+                        [
+                            'name' => $data['title'],
+                            'info' => $data['description'],
+                            'subscribers' => $data['number'],
+                            'status' => $data['status']
+                        ]
+                    );
+                });
             }
             if ($data['type'] == 1) {
-                $model = Group::updateOrCreate(
-                    ['invite_link' => $data['link']],
-                    [
-                        'name' => $data['title'],
-                        'info' => $data['description'],
-                        'count' => $data['number'],
-                        'online' => $data['online_number'],
-                        'status' => $data['status']
-                    ]
-                );
+                $model = Group::withoutEvents(function () use ($data) {
+                    return Group::updateOrCreate(
+                        ['invite_link' => $data['link']],
+                        [
+                            'name' => $data['title'],
+                            'info' => $data['description'],
+                            'count' => $data['number'],
+                            'online' => $data['online_number'],
+                            'status' => $data['status']
+                        ]
+                    );
+                });
             }
             if (!$model){
                 Log::error("入库失败",$request->all());
@@ -266,7 +270,6 @@ class MainController extends BaseController
                     $data
                 );
             });
-
         }
         return response()->json($model);
     }
