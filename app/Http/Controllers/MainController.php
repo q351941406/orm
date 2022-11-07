@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Group;
 use App\Models\Channel;
 use App\Models\Account;
+use App\Models\SearchLog;
 use App\Jobs\installESJob;
 use DateTime;
 use DateTimeZone;
@@ -27,8 +28,16 @@ class MainController extends BaseController
     public function test(Request $request)
     {
 
-//        $d = Group::get()->count();
-//        dd($d);
+
+        $a = SearchLog::whereDate('created_at', '2022-11-6')
+            ->where('indexGroup_id',5)
+            ->where('status',0)
+            ->update(['status' => 1]);
+        return response()->json($a);
+
+
+
+
         $engine_name = 'groups';
 ////        $a = Group::limit(10)->get();
 ////        installESJob::dispatch($engine_name,$a->toArray());
@@ -306,11 +315,20 @@ class MainController extends BaseController
         $link = $request->input('link');
         if ($type == 0){
             $channel = Channel::firstWhere('invite_link',$link);
+            if ($channel){
+                $channel->delete();
+            }else {
+                return response()->json(['msg'=>'数据库查不到']);
+            }
             $channel->delete();
         }
         if ($type == 1){
             $group = Group::firstWhere('invite_link',$link);
-            $group->delete();
+            if ($group){
+                $group->delete();
+            }else {
+                return response()->json(['msg'=>'数据库查不到']);
+            }
         }
         return response()->json(['msg'=>'删除完毕']);
     }
