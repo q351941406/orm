@@ -27,8 +27,8 @@ class MainController extends BaseController
     //保存私聊发送记录
     public function test(Request $request)
     {
-
-
+        $links = $request->input('links');
+        dd($links);
         $a = SearchLog::whereDate('created_at', '2022-11-6')
             ->where('indexGroup_id',5)
             ->where('status',0)
@@ -198,7 +198,7 @@ class MainController extends BaseController
             ->first();
         return response()->json($model);
     }
-    // 过滤没有在数据库中存在的链接
+    // 返回没有在数据库中存在的链接
     public function get_uninsertLink(Request $request)
     {
         $links = $request->input('links');
@@ -223,39 +223,40 @@ class MainController extends BaseController
         $data = $request->all()['data'];
         $model = null;
         if ($request->all()['code'] == 0) {
-
-            if ($data['type'] == 0) {
-                $model = Channel::withoutEvents(function () use ($data) {
-                    return Channel::updateOrCreate(
-                        ['invite_link' => $data['link']],
-                        [
-                            'name' => $data['title'],
-                            'info' => $data['description'],
-                            'subscribers' => $data['number'],
-                            'status' => $data['status']
-                        ]
-                    );
-                });
+            try {
+                if ($data['type'] == 0) {
+                    $model = Channel::withoutEvents(function () use ($data) {
+                        return Channel::updateOrCreate(
+                            ['invite_link' => $data['link']],
+                            [
+                                'name' => $data['title'],
+                                'info' => $data['description'],
+                                'subscribers' => $data['number'],
+                                'status' => $data['status']
+                            ]
+                        );
+                    });
+                }
+                if ($data['type'] == 1) {
+                    $model = Group::withoutEvents(function () use ($data) {
+                        return Group::updateOrCreate(
+                            ['invite_link' => $data['link']],
+                            [
+                                'name' => $data['title'],
+                                'info' => $data['description'],
+                                'count' => $data['number'],
+                                'online' => $data['online_number'],
+                                'status' => $data['status']
+                            ]
+                        );
+                    });
+                }
+                Log::info('入库成功',$model->toArray());
+                return response()->json($model);
+            }catch (\Exception $e){
+                Log::error($e->getMessage(),$request->all());
+                return response()->json(['msg'=>$e->getMessage()]);
             }
-            if ($data['type'] == 1) {
-                $model = Group::withoutEvents(function () use ($data) {
-                    return Group::updateOrCreate(
-                        ['invite_link' => $data['link']],
-                        [
-                            'name' => $data['title'],
-                            'info' => $data['description'],
-                            'count' => $data['number'],
-                            'online' => $data['online_number'],
-                            'status' => $data['status']
-                        ]
-                    );
-                });
-            }
-            if (!$model){
-                Log::error("入库失败",$request->all());
-            }
-            Log::info('入库成功',$model->toArray());
-            return response()->json($model);
         }
     }
     // 也是更新消息,根据传递进来的参数更新
@@ -264,23 +265,29 @@ class MainController extends BaseController
         $data = $request->input('data');
         $type = $request->input('type');
         $model = null;
-        if ($type == 0){
-            $model = Channel::withoutEvents(function () use ($data) {
-                return Channel::updateOrCreate(
-                    ['id' => $data['id']],
-                    $data
-                );
-            });
+
+        try {
+            if ($type == 0){
+                $model = Channel::withoutEvents(function () use ($data) {
+                    return Channel::updateOrCreate(
+                        ['id' => $data['id']],
+                        $data
+                    );
+                });
+            }
+            if ($type == 1){
+                $model = Group::withoutEvents(function () use ($data) {
+                    return Group::updateOrCreate(
+                        ['id' => $data['id']],
+                        $data
+                    );
+                });
+            }
+            return response()->json($model);
+        }catch (\Exception $e){
+            Log::error($e->getMessage(),$request->all());
+            return response()->json(['msg'=>$e->getMessage()]);
         }
-        if ($type == 1){
-            $model = Group::withoutEvents(function () use ($data) {
-                return Group::updateOrCreate(
-                    ['id' => $data['id']],
-                    $data
-                );
-            });
-        }
-        return response()->json($model);
     }
     // 获取一个账号
     public function get_account(Request $request)
