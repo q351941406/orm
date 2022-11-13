@@ -19,6 +19,8 @@ use App\Models\SearchLog;
 use App\Jobs\installESJob;
 use DateTime;
 use DateTimeZone;
+use App\Models\ChannelMessage;
+use Illuminate\Support\Arr;
 // 0 = 频道，1 = 群组
 class MainController extends BaseController
 {
@@ -283,6 +285,39 @@ class MainController extends BaseController
                     );
                 });
             }
+            return response()->json($model);
+        }catch (\Exception $e){
+            Log::error($e->getMessage(),$request->all());
+            return response()->json(['msg'=>$e->getMessage()]);
+        }
+    }
+    // 也是更新消息,根据传递进来的参数更新
+    public function updateMessage(Request $request){
+        $data = $request->input('data');
+        $type = $request->input('type');
+        $model = null;
+//        [$keys, $values] = Arr::divide($data[0]);
+
+        try {
+            if ($type == 0){
+                $model = ChannelMessage::withoutEvents(function () use ($data) {
+                    [$keys, $values] = Arr::divide($data[0]);
+                    return ChannelMessage::upsert(
+                        $data,
+                        ['channel_id','msg_id'],
+                        $keys,
+                    );
+                });
+            }
+//            if ($type == 1){
+//                $model = Group::withoutEvents(function () use ($data) {
+//                    return Group::updateOrCreate(
+//                        ['id' => $data['id']],
+//                        $data
+//                    );
+//                });
+//            }
+//            dd($model);
             return response()->json($model);
         }catch (\Exception $e){
             Log::error($e->getMessage(),$request->all());

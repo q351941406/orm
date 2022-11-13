@@ -30,3 +30,4 @@ Route::post('/link_delete', [\App\Http\Controllers\MainController::class, 'link_
 Route::post('/update', [\App\Http\Controllers\MainController::class, 'update']);
 Route::post('/save_account', [\App\Http\Controllers\MainController::class, 'save_account']);
 Route::any('/get_need_update_groupList', [\App\Http\Controllers\MainController::class, 'get_need_update_groupList']);
+Route::post('/updateMessage', [\App\Http\Controllers\MainController::class, 'updateMessage']);
