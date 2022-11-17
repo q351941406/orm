@@ -31,10 +31,13 @@ class MainController extends BaseController
     public function test(Request $request)
     {
 
-        $numner = $request->input('type');
-        ChannelMessage::chunk($numner, function ($models) {
+        $number = $request->input('number');
+        $index = $request->input('index');
+        ChannelMessage::where('id','>=',$index)->chunkById($number, function ($models) {
             $result = Http::post('http://52.53.210.94:8000/api/v1/msg/channel/multi_insert_on_update',['channel_msg_list'=>$models->toArray()]);
-            Log::debug('完成一批');
+            $temp = $models->toArray();
+            $last = array_pop($temp);
+            Log::debug("完成一批,最后的id是:{$last['id']}");
         });
         return response()->json('全都完成');
 
