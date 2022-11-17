@@ -22,6 +22,8 @@ class ChannelMessage extends Model
      *
      * @var string
      */
-//    protected $table = 'citys';
-
+    protected $casts = [
+        'send_time' => 'datetime',
+    ];
+//    protected $dateFormat = 'ISO-8601';
 }

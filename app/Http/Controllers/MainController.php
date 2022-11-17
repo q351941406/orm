@@ -11,6 +11,7 @@ use Illuminate\Routing\Controller as BaseController;
 use App\Models\Enemy;
 use App\Models\Keyword;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Models\Group;
 use App\Models\Channel;
@@ -29,15 +30,13 @@ class MainController extends BaseController
     //保存私聊发送记录
     public function test(Request $request)
     {
-        $links = $request->input('links');
-        dd($links);
-        $a = SearchLog::whereDate('created_at', '2022-11-6')
-            ->where('indexGroup_id',5)
-            ->where('status',0)
-            ->update(['status' => 1]);
-        return response()->json($a);
 
-
+        $numner = $request->input('type');
+        ChannelMessage::chunk($numner, function ($models) {
+            $result = Http::post('http://52.53.210.94:8000/api/v1/msg/channel/multi_insert_on_update',['channel_msg_list'=>$models->toArray()]);
+            Log::debug('完成一批');
+        });
+        return response()->json('全都完成');
 
 
         $engine_name = 'groups';
