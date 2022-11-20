@@ -23,7 +23,10 @@ class Channel extends Model
      * @var string
      */
 //    protected $table = 'citys';
-
+    public function messages()
+    {
+        return $this->hasMany(ChannelMessage::class);
+    }
     protected static function booted()
     {
         // updateOrCreate、save、Create都会调

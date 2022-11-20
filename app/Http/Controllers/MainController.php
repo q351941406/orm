@@ -30,11 +30,22 @@ class MainController extends BaseController
     //保存私聊发送记录
     public function test(Request $request)
     {
+//        $channel_id = 124588;
+//        $aa = ChannelMessage::where('channel_id',$channel_id)->forceDelete();
+//        $bb = Channel::find($channel_id);
+//        $bb->status = 1;
+//        $bb->save();
+////        $aa = ChannelMessage::groupBy('channel_id')
+////            ->having('channel_id', '<', 100)
+//////            ->limit(1)
+////            ->get();
+////        $aa = ChannelMessage::where('msg_id','>',50000)->limit(1)->get();
+//        return response()->json($aa);
 
         $number = $request->input('number');
         $index = $request->input('index');
         ChannelMessage::where('id','>=',$index)->chunkById($number, function ($models) {
-            $result = Http::post('http://52.53.210.94:8000/api/v1/msg/channel/multi_insert_on_update',['channel_msg_list'=>$models->toArray()]);
+            $result = Http::post('http://ec2-54-177-201-62.us-west-1.compute.amazonaws.com:8000/api/v1/msg/channel/multi_insert_on_update',['channel_msg_list'=>$models->toArray()]);
             $temp = $models->toArray();
             $last = array_pop($temp);
             Log::debug("完成一批,最后的id是:{$last['id']}");
