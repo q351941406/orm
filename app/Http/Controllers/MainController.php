@@ -41,19 +41,16 @@ class MainController extends BaseController
 ////            ->get();
 ////        $aa = ChannelMessage::where('msg_id','>',50000)->limit(1)->get();
 //        return response()->json($aa);
+        $client = new \GuzzleHttp\Client();
+
 
         $number = $request->input('number');
         $index = $request->input('index');
         ChannelMessage::where('id','>=',$index)->chunkById($number, function ($models) {
-            $result = Http::async()
-                ->post('http://ec2-54-177-201-62.us-west-1.compute.amazonaws.com:8000/api/v1/msg/channel/multi_insert_on_update',['channel_msg_list'=>$models->toArray()])
-                ->then(function ($response) use($models) {
-                    Log::debug("xxxx");
-                    $temp = $models->toArray();
-                    $last = array_pop($temp);
-                    Log::debug("完成一批,最后的id是:{$last['id']}");
-                });
-            Log::debug("完成这一批");
+            $result = Http::post('http://ec2-54-177-201-62.us-west-1.compute.amazonaws.com:8000/api/v1/msg/channel/multi_insert_on_update',['channel_msg_list'=>$models->toArray()]);
+            $temp = $models->toArray();
+            $last = array_pop($temp);
+            Log::debug("完成一批,最后的id是:{$last['id']}");
         });
         return response()->json('全都完成');
 
@@ -128,12 +125,8 @@ class MainController extends BaseController
     // 初始化es的数据
     public function es_install_data(Request $request,$type)
     {
-        ChannelMessage::where('id','>=',1)->chunkById(10000, function ($models) {
-            $result = Http::async()
-                ->post('http://ec2-54-177-201-62.us-west-1.compute.amazonaws.com:8000/api/v1/msg/channel/multi_insert_on_update',['channel_msg_list'=>$models->toArray()])
-                ->then(function ($response) {
-
-                });
+        ChannelMessage::where('id','>=',1)->chunkById(5000, function ($models) {
+            $result = Http::post('http://ec2-54-177-201-62.us-west-1.compute.amazonaws.com:8000/api/v1/msg/channel/multi_insert_on_update',['channel_msg_list'=>$models->toArray()]);
             $temp = $models->toArray();
             $last = array_pop($temp);
             Log::debug("完成一批,最后的id是:{$last['id']}");
