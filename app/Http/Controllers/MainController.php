@@ -125,7 +125,7 @@ class MainController extends BaseController
     // 初始化es的数据
     public function es_install_data(Request $request,$type)
     {
-        ChannelMessage::where('id','>=',1)->chunkById(5000, function ($models) {
+        ChannelMessage::where('id','>=',2000000)->chunkById(5000, function ($models) {
             $result = Http::post('http://ec2-54-177-201-62.us-west-1.compute.amazonaws.com:8000/api/v1/msg/channel/multi_insert_on_update',['channel_msg_list'=>$models->toArray()]);
             $temp = $models->toArray();
             $last = array_pop($temp);
