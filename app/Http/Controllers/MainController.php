@@ -397,6 +397,7 @@ class MainController extends BaseController
             ->whereIn('status',[0,100])
             ->chunk(100, function ($models) {
                 foreach ($models as $value) {
+                    Log::debug("正在查看ID={$value->id}");
                     $channel = $value;
                     // 查es该频道最大msg_id
                     $scyllaDomain = env('SCYLLA_DB_GO');
