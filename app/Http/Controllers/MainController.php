@@ -395,49 +395,51 @@ class MainController extends BaseController
         $numbers = range($start,$end);
         Channel::whereIn('id',$numbers)
             ->whereIn('status',[0,100])
-            ->chunk(1, function ($model) {
-            $channel = $model[0];
-            // 查es该频道最大msg_id
-            $scyllaDomain = env('SCYLLA_DB_GO');
-            $urlSuffix = "/api/as/v1/engines/message/elasticsearch/_search";
-            $data = [
-                'query'=>[
-                    'term'=>[
-                        'channel_id'=>$channel->id
-                    ]
-                ],
-                'runtime_mappings' => [// 动态修改字段类型，不然下面无法进行聚合计算，app search的类型和es的类型没关联
-                    'msg_id'=>[
-                        'type'=>'long'
-                    ]
-                ],
-                'size' => 0,
-                'aggs' => [
-                    'max_msg_id'=>[
-                        'max'=>[
-                            'field'=>'msg_id'
+            ->chunk(100, function ($models) {
+                foreach ($models as $value) {
+                    $channel = $value;
+                    // 查es该频道最大msg_id
+                    $scyllaDomain = env('SCYLLA_DB_GO');
+                    $urlSuffix = "/api/as/v1/engines/message/elasticsearch/_search";
+                    $data = [
+                        'query'=>[
+                            'term'=>[
+                                'channel_id'=>$channel->id
+                            ]
                         ],
-                    ]
-                ]
-            ];
-            $response = ElasticSearchApi::post($urlSuffix,$data);
-            $msg_id = Arr::get($response, 'aggregations.max_msg_id.value') ?: 0;
-            $data = Http::get("{$scyllaDomain}/api/v1/msg/channel/backward?channel_id={$channel->id}&msg_id={$msg_id}")->json();
-            if ($data['data'] != null){
-                $lessData = array_chunk($data['data']['channel_msg_list'], 100, false);
-                foreach ($lessData as $key => $value) {
-                    $newValue = array_map(function($item) use ($channel) {
-                        $item['name'] = $channel->name;
-                        $item['info'] = $channel->info;
-                        $item['invite_link'] = $channel->invite_link;
-                        $item['is_forward'] = (int)$item['is_forward'];//es那边不接受true、false
-                        $item['id'] = (string) Str::uuid();
-                        $item['uuid'] = $item['id'];
-                        return $item;
-                    }, $value);
-                    installESJob::dispatch('message',$newValue,true);
+                        'runtime_mappings' => [// 动态修改字段类型，不然下面无法进行聚合计算，app search的类型和es的类型没关联
+                            'msg_id'=>[
+                                'type'=>'long'
+                            ]
+                        ],
+                        'size' => 0,
+                        'aggs' => [
+                            'max_msg_id'=>[
+                                'max'=>[
+                                    'field'=>'msg_id'
+                                ],
+                            ]
+                        ]
+                    ];
+                    $response = ElasticSearchApi::post($urlSuffix,$data);
+                    $msg_id = Arr::get($response, 'aggregations.max_msg_id.value') ?: 0;
+                    $data = Http::get("{$scyllaDomain}/api/v1/msg/channel/backward?channel_id={$channel->id}&msg_id={$msg_id}")->json();
+                    if ($data['data'] != null){
+                        $lessData = array_chunk($data['data']['channel_msg_list'], 100, false);
+                        foreach ($lessData as $key => $value) {
+                            $newValue = array_map(function($item) use ($channel) {
+                                $item['name'] = $channel->name;
+                                $item['info'] = $channel->info;
+                                $item['invite_link'] = $channel->invite_link;
+                                $item['is_forward'] = (int)$item['is_forward'];//es那边不接受true、false
+                                $item['id'] = (string) Str::uuid();
+                                $item['uuid'] = $item['id'];
+                                return $item;
+                            }, $value);
+                            installESJob::dispatch('message',$newValue,true);
+                        }
+                    }
                 }
-            }
         });
     }
 
