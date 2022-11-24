@@ -21,17 +21,18 @@ class installESJob implements ShouldQueue
     protected $type;
     protected $engine_name;
     protected $data;
-
+    protected $updateUUID;
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($engine_name,$data)
+    public function __construct($engine_name,$data,$updateUUID)
     {
 //        $this->type = $type;
         $this->engine_name = $engine_name;
         $this->data = $data;
+        $this->updateUUID = $updateUUID;
     }
 
     /**
@@ -43,6 +44,6 @@ class installESJob implements ShouldQueue
      */
     public function handle()
     {
-        ElasticSearchApi::es_install_data($this->engine_name,$this->data);
+        ElasticSearchApi::es_install_data($this->engine_name,$this->data,$this->updateUUID);
     }
 }

@@ -31,3 +31,7 @@ Route::post('/update', [\App\Http\Controllers\MainController::class, 'update']);
 Route::post('/save_account', [\App\Http\Controllers\MainController::class, 'save_account']);
 Route::any('/get_need_update_groupList', [\App\Http\Controllers\MainController::class, 'get_need_update_groupList']);
 Route::post('/updateMessage', [\App\Http\Controllers\MainController::class, 'updateMessage']);
+Route::post('/deleteMessage', [\App\Http\Controllers\MainController::class, 'deleteMessage']);
+Route::post('/syncMessage', [\App\Http\Controllers\MainController::class, 'syncMessage']);
+
+

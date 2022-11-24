@@ -22,6 +22,8 @@ use DateTime;
 use DateTimeZone;
 use App\Models\ChannelMessage;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Artisan;
 // 0 = 频道，1 = 群组
 class MainController extends BaseController
 {
@@ -30,35 +32,16 @@ class MainController extends BaseController
     //保存私聊发送记录
     public function test(Request $request)
     {
-//        $channel_id = 124588;
-//        $aa = ChannelMessage::where('channel_id',$channel_id)->forceDelete();
-//        $bb = Channel::find($channel_id);
-//        $bb->status = 1;
-//        $bb->save();
+
+        Artisan::call('es:syncMessage 1 11');
+        dd(111);
 ////        $aa = ChannelMessage::groupBy('channel_id')
 ////            ->having('channel_id', '<', 100)
 //////            ->limit(1)
 ////            ->get();
 ////        $aa = ChannelMessage::where('msg_id','>',50000)->limit(1)->get();
-//        return response()->json($aa);
-        $client = new \GuzzleHttp\Client();
-
-
-        $number = $request->input('number');
-        $index = $request->input('index');
-        ChannelMessage::where('id','>=',$index)->chunkById($number, function ($models) {
-            $result = Http::post('http://ec2-54-177-201-62.us-west-1.compute.amazonaws.com:8000/api/v1/msg/channel/multi_insert_on_update',['channel_msg_list'=>$models->toArray()]);
-            $temp = $models->toArray();
-            $last = array_pop($temp);
-            Log::debug("完成一批,最后的id是:{$last['id']}");
-        });
-        return response()->json('全都完成');
-
 
         $engine_name = 'groups';
-////        $a = Group::limit(10)->get();
-////        installESJob::dispatch($engine_name,$a->toArray());
-////        dd($a);
         $a = Group::
 //        where([
 //            ['last_msg_date','!=',null],
@@ -74,71 +57,11 @@ class MainController extends BaseController
             ->count();
 //        $a = ElasticSearchApi::es_install_data($engine_name,$a->toArray());
         return response()->json($a);
-//        ->chunk(10000, function ($models) use ($engine_name) {
-////            Log::debug(1);
-////            $lessModels = array_chunk($models->toArray(), 100, false);
-////            foreach ($lessModels as $key => $value) {
-////                installESJob::dispatch($engine_name,$value);
-////            }
-//////            dd($lessModels);
-//        });
-
-//        $model = Group::updateOrCreate(
-//            ['id' => 21],
-//            [
-//                'msg_average_interval' => 9,
-//            ]
-//        );
-
-//        $model = Channel::where('id',10)->update(['subscribers'=>7158]);
-//        $model->save();
-
-
-
-//        $channels = Channel::
-//        whereIn('id', [19])
-//            ->get();
-//
-//        $d = $channels->toArray();
-//        foreach ($d as &$x){
-//            if ($x['last_msg_date']){//es只接收DATE_RFC3339格式的data字段
-//                $timeStamp = strtotime($x['last_msg_date']);
-//                $x['last_msg_date'] = date(DATE_RFC3339,$timeStamp);
-//            }
-//            // 移除调某些key
-//            $x = array_diff_key($x, ['updated_at' => "", "created_at" => "",'deleted_at'=>'']);
-//        }
-//        ElasticSearchApi::es_install_data('channels',$d);
-////        $a = Channel::upsert($d,[]);
-//        dd($d);
-//        $model = Channel::find(43908);
-////        $model->last_msg_date = "2016-10-15T08:00:10+00:00";
-//        $model->last_msg_date_normalize = 0.42764284;
-//
-//        $model->save();
-
-
-
-//        return response()->json($model);
     }
 
     // 初始化es的数据
     public function es_install_data(Request $request,$type)
     {
-        ChannelMessage::where('id','>=',2000000)->chunkById(5000, function ($models) {
-            $result = Http::post('http://ec2-54-177-201-62.us-west-1.compute.amazonaws.com:8000/api/v1/msg/channel/multi_insert_on_update',['channel_msg_list'=>$models->toArray()]);
-            $temp = $models->toArray();
-            $last = array_pop($temp);
-            Log::debug("完成一批,最后的id是:{$last['id']}");
-        });
-        return response()->json('全都完成');
-
-
-
-
-
-
-
 //        $type = $request->input('type');
         if ($type == 0){
             $engine_name = 'channels';
@@ -446,4 +369,73 @@ class MainController extends BaseController
             return response()->json($models);
         }
     }
+
+    /**
+     * 删除那些垃圾消息
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse|void
+     */
+    public function deleteMessage(Request $request){
+        $channel_id = $request->input('channel_id');
+        $scyllaDomain = env('SCYLLA_DB_GO');
+        $channel = Channel::find($channel_id);
+        $channel->status = 1;
+        $channel->save();
+        Http::post("{$scyllaDomain}/api/v1/msg/channel/delete",['channel_id'=>$channel_id])->json();
+        return response()->json($channel);
+    }
+
+    /**
+     * 同步消息,注意：每次要先消耗完redis里的再调
+     * @param Request $request
+     * @return void
+     */
+    public function syncMessage(Request $request,$start,$end){
+
+        $numbers = range($start,$end);
+        Channel::whereIn('id',$numbers)->chunk(1, function ($model) {
+            $channel = $model[0];
+            // 查es该频道最大msg_id
+            $scyllaDomain = env('SCYLLA_DB_GO');
+            $urlSuffix = "/api/as/v1/engines/message/elasticsearch/_search";
+            $data = [
+                'query'=>[
+                    'term'=>[
+                        'channel_id'=>$channel->id
+                    ]
+                ],
+                'runtime_mappings' => [// 动态修改字段类型，不然下面无法进行聚合计算，app search的类型和es的类型没关联
+                    'msg_id'=>[
+                        'type'=>'long'
+                    ]
+                ],
+                'size' => 0,
+                'aggs' => [
+                    'max_msg_id'=>[
+                        'max'=>[
+                            'field'=>'msg_id'
+                        ],
+                    ]
+                ]
+            ];
+            $response = ElasticSearchApi::post($urlSuffix,$data);
+            $msg_id = Arr::get($response, 'aggregations.max_msg_id.value') ?: 0;
+            $data = Http::get("{$scyllaDomain}/api/v1/msg/channel/backward?channel_id={$channel->id}&msg_id={$msg_id}")->json();
+            if ($data['data'] != null){
+                $lessData = array_chunk($data['data']['channel_msg_list'], 100, false);
+                foreach ($lessData as $key => $value) {
+                    $newValue = array_map(function($item) use ($channel) {
+                        $item['name'] = $channel->name;
+                        $item['info'] = $channel->info;
+                        $item['invite_link'] = $channel->invite_link;
+                        $item['id'] = (string) Str::uuid();
+                        $item = Arr::except($item, ['hyperlinks','text','name','info','invite_link','deleted_at','updated_at','created_at','send_time','uuid','is_forward','views','1111']);
+                        return $item;
+                    }, $value);
+                    installESJob::dispatch('message',$value,true);
+                }
+            }
+        });
+    }
+
 }
