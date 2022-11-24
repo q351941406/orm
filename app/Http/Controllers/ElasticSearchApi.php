@@ -37,7 +37,6 @@ class ElasticSearchApi {
         if ($needUpdateUUID){
             Log::debug("当前正在上传:{$data[0]['channel_id']}");
             $newData = array_map(function($item) {
-                $item['uuid'] = $item['id'];
                 $item = Arr::except($item, ['hyperlinks','text','name','info',
                     'invite_link','deleted_at','updated_at',
                     'created_at','send_time','id',
@@ -46,7 +45,6 @@ class ElasticSearchApi {
             }, $data);
             $scyllaDomain = env('SCYLLA_DB_GO');
             $result = Http::post("{$scyllaDomain}/api/v1/msg/channel/multi_update_uuid",['channel_msg_list'=>$newData]);
-
         }
     }
     public static function delete_data($engine_name,$ids){

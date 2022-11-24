@@ -428,11 +428,12 @@ class MainController extends BaseController
                         $item['name'] = $channel->name;
                         $item['info'] = $channel->info;
                         $item['invite_link'] = $channel->invite_link;
+                        $item['is_forward'] = (int)$item['is_forward'];//es那边不接受true、false
                         $item['id'] = (string) Str::uuid();
-                        $item = Arr::except($item, ['hyperlinks','text','name','info','invite_link','deleted_at','updated_at','created_at','send_time','uuid','is_forward','views','1111']);
+                        $item['uuid'] = $item['id'];
                         return $item;
                     }, $value);
-                    installESJob::dispatch('message',$value,true);
+                    installESJob::dispatch('message',$newValue,true);
                 }
             }
         });
