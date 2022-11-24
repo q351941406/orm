@@ -393,7 +393,9 @@ class MainController extends BaseController
     public function syncMessage(Request $request,$start,$end){
 
         $numbers = range($start,$end);
-        Channel::whereIn('id',$numbers)->chunk(1, function ($model) {
+        Channel::whereIn('id',$numbers)
+            ->whereIn('status',[0,100])
+            ->chunk(1, function ($model) {
             $channel = $model[0];
             // 查es该频道最大msg_id
             $scyllaDomain = env('SCYLLA_DB_GO');
