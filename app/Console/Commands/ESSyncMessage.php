@@ -8,7 +8,7 @@ class ESSyncMessage extends Command
 {
     /**
      * The name and signature of the console command.
-     * 案例 php artisan es:install 0
+     * 案例 php artisan es:syncMessage 1 11
      * @var string
      */
     protected $signature = 'es:syncMessage {start=0} {end=1}';

@@ -11,31 +11,31 @@ use Illuminate\Support\Str;
 
 class ElasticSearchApi {
 
-    public static function es_install_data($engine_name,$data,$updateUUID=false){
+    public static function es_install_data($engine_name,$data,$needUpdateUUID=false){
 
-//        $urlSuffix = "/api/as/v1/engines/{$engine_name}/documents";
-//        // 修改提升值，不然衰减函数无法生效，让它值变小，
-//        if($engine_name === 'groups'){
-//            foreach ($data as &$x){
-//                if ($x['msg_average_interval'] == 0){// 1不能除以0，所以这里把最高发送频率的0设置成1
-//                    $x['msg_average_interval'] = 1;
-//                }
-//                $x['msg_average_interval'] = 1/ $x['msg_average_interval'];
-//            }
-//        }
-////        return $data;
-//        $response = ElasticSearchApi::post($urlSuffix,$data);
-//        if (!$response){
-//            Log::error('ES没有返回内容');
-//            return;
-//        }
-//        foreach ($response as $x){
-//            if (count($x['errors']) > 0){
-//                Log::error('数据上传错误',$x);
-//            }
-//        }
-        if ($updateUUID){
-            Log::debug("当前正在上传:{$data['channel_id']}");
+        $urlSuffix = "/api/as/v1/engines/{$engine_name}/documents";
+        // 修改提升值，不然衰减函数无法生效，让它值变小，
+        if($engine_name === 'groups'){
+            foreach ($data as &$x){
+                if ($x['msg_average_interval'] == 0){// 1不能除以0，所以这里把最高发送频率的0设置成1
+                    $x['msg_average_interval'] = 1;
+                }
+                $x['msg_average_interval'] = 1/ $x['msg_average_interval'];
+            }
+        }
+//        return $data;
+        $response = ElasticSearchApi::post($urlSuffix,$data);
+        if (!$response){
+            Log::error('ES没有返回内容');
+            return;
+        }
+        foreach ($response as $x){
+            if (count($x['errors']) > 0){
+                Log::error('数据上传错误',$x);
+            }
+        }
+        if ($needUpdateUUID){
+            Log::debug("当前正在上传:{$data[0]['channel_id']}");
             $newData = array_map(function($item) {
                 $item['uuid'] = $item['id'];
                 $item = Arr::except($item, ['hyperlinks','text','name','info',
