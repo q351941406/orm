@@ -35,7 +35,7 @@ class ElasticSearchApi {
             }
         }
         if ($needUpdateUUID){
-            Log::debug("当前正在上传:{$data[0]['channel_id']}");
+            Log::debug("当前消费正在上传:{$data[0]['channel_id']}");
             $newData = array_map(function($item) {
                 $item = Arr::except($item, ['hyperlinks','text','name','info',
                     'invite_link','deleted_at','updated_at',
