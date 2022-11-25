@@ -33,9 +33,7 @@ class MainController extends BaseController
     //保存私聊发送记录
     public function test(Request $request)
     {
-        $contents = file_get_contents('/proc/meminfo');
-        preg_match_all('/(\w+):\s+(\d+)\s/', $contents, $matches);
-        $info = array_combine($matches[1], $matches[2]);
+
         dd($info);
 
 //        Artisan::call('es:syncMessage 1 11');
@@ -400,7 +398,12 @@ class MainController extends BaseController
         $numbers = range($start,$end);
         Channel::whereIn('id',$numbers)
             ->whereIn('status',[0,100])
-            ->chunk(100, function ($models) {
+            ->chunk(20, function ($models) {
+                $MemFree = Tools::getMemFree();
+                if ($MemFree <= 0.5){
+                    Log::error('内存太少了停止，不要继续塞数据到redis了');
+                    exit();
+                }
                 foreach ($models as $value) {
                     Log::debug("正在查看ID={$value->id}");
                     $channel = $value;
