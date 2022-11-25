@@ -1,11 +1,11 @@
 <?php return array(
     'root' => array(
-        'pretty_version' => 'v9.3.3',
-        'version' => '9.3.3.0',
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => NULL,
+        'reference' => 'd87e3ee7332c7ecc6fe341c360b23151e11ad14f',
         'name' => 'laravel/laravel',
         'dev' => true,
     ),
@@ -373,13 +373,22 @@
             'reference' => '053840f579cf01d353d81333802afced79b1c0af',
             'dev_requirement' => false,
         ),
+        'laravel/horizon' => array(
+            'pretty_version' => 'v5.10.4',
+            'version' => '5.10.4.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../laravel/horizon',
+            'aliases' => array(),
+            'reference' => '07a5d73b804c6ba17598e378057f4353c983fb3a',
+            'dev_requirement' => false,
+        ),
         'laravel/laravel' => array(
-            'pretty_version' => 'v9.3.3',
-            'version' => '9.3.3.0',
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => NULL,
+            'reference' => 'd87e3ee7332c7ecc6fe341c360b23151e11ad14f',
             'dev_requirement' => false,
         ),
         'laravel/pint' => array(
@@ -667,6 +676,15 @@
             'reference' => '0e32b76be457de00e83213528f6bb37e2a38fcb1',
             'dev_requirement' => true,
         ),
+        'predis/predis' => array(
+            'pretty_version' => 'v2.0.3',
+            'version' => '2.0.3.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../predis/predis',
+            'aliases' => array(),
+            'reference' => 'ff59f745815150c65ed388f7d64e7660fe961771',
+            'dev_requirement' => false,
+        ),
         'psr/container' => array(
             'pretty_version' => '2.0.2',
             'version' => '2.0.2.0',
@@ -754,8 +772,8 @@
         'psr/log-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '1.0|2.0|3.0',
-                1 => '1.0.0 || 2.0.0 || 3.0.0',
+                0 => '1.0.0 || 2.0.0 || 3.0.0',
+                1 => '1.0|2.0|3.0',
             ),
         ),
         'psr/simple-cache' => array(

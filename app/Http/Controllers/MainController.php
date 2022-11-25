@@ -29,9 +29,23 @@ class MainController extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
+    function getSystemMemInfo()
+    {
+        $data = explode("\n", file_get_contents("/proc/meminfo"));
+        $meminfo = array();
+        foreach ($data as $line) {
+            list($key, $val) = explode(":", $line);
+            $meminfo[$key] = trim($val);
+        }
+        return $meminfo;
+    }
     //保存私聊发送记录
     public function test(Request $request)
     {
+        $contents = file_get_contents('/proc/meminfo');
+        preg_match_all('/(\w+):\s+(\d+)\s/', $contents, $matches);
+        $info = array_combine($matches[1], $matches[2]);
+        dd($info);
 
         Artisan::call('es:syncMessage 1 11');
         dd(111);
