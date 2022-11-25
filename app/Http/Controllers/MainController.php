@@ -33,13 +33,13 @@ class MainController extends BaseController
     //保存私聊发送记录
     public function test(Request $request)
     {
-//        $contents = file_get_contents('/proc/meminfo');
-//        preg_match_all('/(\w+):\s+(\d+)\s/', $contents, $matches);
-//        $info = array_combine($matches[1], $matches[2]);
-//        dd($info);
+        $contents = file_get_contents('/proc/meminfo');
+        preg_match_all('/(\w+):\s+(\d+)\s/', $contents, $matches);
+        $info = array_combine($matches[1], $matches[2]);
+        dd($info);
 
 //        Artisan::call('es:syncMessage 1 11');
-        dd(111);
+//        dd(111);
 ////        $aa = ChannelMessage::groupBy('channel_id')
 ////            ->having('channel_id', '<', 100)
 //////            ->limit(1)
