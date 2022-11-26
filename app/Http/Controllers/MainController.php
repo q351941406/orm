@@ -400,6 +400,7 @@ class MainController extends BaseController
             ->whereIn('status',[0,100])
             ->chunk(20, function ($models) {
                 $MemFree = Tools::getMemFree();
+                Log::debug("当前剩余内存:{$MemFree}G");
                 if ($MemFree <= 0.5){
                     Log::error('内存太少了停止，不要继续塞数据到redis了');
                     exit();
