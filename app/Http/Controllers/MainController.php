@@ -33,8 +33,8 @@ class MainController extends BaseController
     //保存私聊发送记录
     public function test(Request $request)
     {
-
-        dd($info);
+        $MemFree = Tools::getMemFree();
+        dd($MemFree);
 
 //        Artisan::call('es:syncMessage 1 11');
 //        dd(111);
