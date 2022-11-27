@@ -65,8 +65,8 @@ class ElasticSearchApi {
 
 
     public static function post($urlSuffix,$data){
-        $esDomain = env('ES_DOMAIN_PRIVATE');
-        $key = env('ES_PRIVATE_KEY');
+        $esDomain = env('ES_DOMAIN');
+        $key = env('ES_KEY');
         $response = Http::withToken($key)->withHeaders([
             'Content-Type' => 'application/json'
         ])->post("{$esDomain}{$urlSuffix}", $data)->throw(function ($response, $e) {
@@ -80,8 +80,8 @@ class ElasticSearchApi {
         }
     }
     public static function delete($urlSuffix,$data){
-        $esDomain = env('ES_DOMAIN_PRIVATE');
-        $key = env('ES_PRIVATE_KEY');
+        $esDomain = env('ES_DOMAIN');
+        $key = env('ES_KEY');
         $response = Http::withToken($key)->withHeaders([
             'Content-Type' => 'application/json'
         ])->delete("{$esDomain}{$urlSuffix}", $data);
