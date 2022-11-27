@@ -65,7 +65,7 @@ class ElasticSearchApi {
 
 
     public static function post($urlSuffix,$data){
-        $esDomain = 'https://telegram.ent.us-west-1.aws.found.io';
+        $esDomain = env('ES_DOMAIN_PRIVATE');
         $response = Http::withToken('private-h4vn3vuat6vdxehdu9bz4x2c')->withHeaders([
             'Content-Type' => 'application/json'
         ])->post("{$esDomain}{$urlSuffix}", $data)->throw(function ($response, $e) {
@@ -79,7 +79,7 @@ class ElasticSearchApi {
         }
     }
     public static function delete($urlSuffix,$data){
-        $esDomain = 'https://telegram.ent.us-west-1.aws.found.io';
+        $esDomain = env('ES_DOMAIN_PRIVATE');
         $response = Http::withToken('private-h4vn3vuat6vdxehdu9bz4x2c')->withHeaders([
             'Content-Type' => 'application/json'
         ])->delete("{$esDomain}{$urlSuffix}", $data);
