@@ -447,8 +447,8 @@ class MainController extends BaseController
                                 $item['uuid'] = $item['id'];
                                 return $item;
                             }, $value);
-                            ElasticSearchApi::es_install_data('message',$newValue,true);
-//                            installESJob::dispatch('message',$newValue,true);
+//                            ElasticSearchApi::es_install_data('message',$newValue,true);
+                            installESJob::dispatch('message',$newValue,true);
                         }
                     }
                 }
