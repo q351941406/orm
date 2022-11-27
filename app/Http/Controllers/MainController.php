@@ -33,11 +33,11 @@ class MainController extends BaseController
     //保存私聊发送记录
     public function test(Request $request)
     {
-        $MemFree = Tools::getMemFree();
-        dd($MemFree);
+//        $MemFree = Tools::getMemFree();
+//        dd($MemFree);
 
-//        Artisan::call('es:syncMessage 1 11');
-//        dd(111);
+        Artisan::call('es:syncMessage 0 10');
+        dd(111);
 ////        $aa = ChannelMessage::groupBy('channel_id')
 ////            ->having('channel_id', '<', 100)
 //////            ->limit(1)
@@ -432,6 +432,7 @@ class MainController extends BaseController
                         ]
                     ];
                     $response = ElasticSearchApi::post($urlSuffix,$data);
+//                    dd($response);
                     $msg_id = Arr::get($response, 'aggregations.max_msg_id.value') ?: 0;
                     $data = Http::get("{$scyllaDomain}/api/v1/msg/channel/backward?channel_id={$channel->id}&msg_id={$msg_id}")->json();
                     if ($data['data'] != null){
