@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use App\Http\Controllers\ElasticSearchApi;
+use App\Http\Controllers\AppSearchApi;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Log;
+
 
 class Channel extends Model
 {
@@ -23,6 +23,11 @@ class Channel extends Model
      * @var string
      */
 //    protected $table = 'citys';
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+    ];
     public function messages()
     {
         return $this->hasMany(ChannelMessage::class);
@@ -36,10 +41,10 @@ class Channel extends Model
                 $timeStamp = strtotime($model->last_msg_date);
                 $model->last_msg_date = date(DATE_RFC3339,$timeStamp);
             }
-            ElasticSearchApi::es_install_data('channels',[$model->toArray()]);
+            AppSearchApi::es_install_data('channels',[$model->toArray()]);
         });
         static::deleted(function ($model) {
-            ElasticSearchApi::delete_data('channels',[$model->id]);
+            AppSearchApi::delete_data('channels',[$model->id]);
         });
     }
 

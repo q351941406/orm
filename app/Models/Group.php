@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use App\Http\Controllers\ElasticSearchApi;
+use App\Http\Controllers\AppSearchApi;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Log;
+
 
 class Group extends Model
 {
@@ -28,10 +28,10 @@ class Group extends Model
     protected static function booted()
     {
         static::saved(function ($model) {
-            ElasticSearchApi::es_install_data('groups',[$model->toArray()]);
+            AppSearchApi::es_install_data('groups',[$model->toArray()]);
         });
         static::deleted(function ($model) {
-            ElasticSearchApi::delete_data('groups',[$model->id]);
+            AppSearchApi::delete_data('groups',[$model->id]);
         });
     }
 }

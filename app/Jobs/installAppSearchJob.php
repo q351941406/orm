@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Http\Controllers\ElasticSearchApi;
+use App\Http\Controllers\AppSearchApi;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -11,23 +11,25 @@ use Illuminate\Queue\SerializesModels;
 
 
 
-class installESJob implements ShouldQueue
+class installAppSearchJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-
+    protected $type;
+    protected $engine_name;
     protected $data;
-    protected $index;
-
+    protected $updateUUID;
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($data,$index)
+    public function __construct($engine_name,$data,$updateUUID)
     {
+//        $this->type = $type;
+        $this->engine_name = $engine_name;
         $this->data = $data;
-        $this->index = $index;
+        $this->updateUUID = $updateUUID;
     }
 
     /**
@@ -39,7 +41,6 @@ class installESJob implements ShouldQueue
      */
     public function handle()
     {
-        $es = new ElasticSearchApi();
-        $es->updateOrCreate_bulk($this->data,$this->index);
+        AppSearchApi::es_install_data($this->engine_name,$this->data,$this->updateUUID);
     }
 }

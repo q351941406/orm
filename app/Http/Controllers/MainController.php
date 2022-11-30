@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\ElasticSearchApi;
+use App\Http\Controllers\AppSearchApi;
+use App\Jobs\installESJob;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -17,22 +18,28 @@ use App\Models\Group;
 use App\Models\Channel;
 use App\Models\Account;
 use App\Models\SearchLog;
-use App\Jobs\installESJob;
+use App\Jobs\installAppSearchJob;
 use DateTime;
 use DateTimeZone;
 use App\Models\ChannelMessage;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Artisan;
+use App\Http\Controllers\ElasticSearchApi;
 // 0 = 频道，1 = 群组
 class MainController extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
 
-    //保存私聊发送记录
+
     public function test(Request $request)
     {
+
+
+
+
+
 //        $MemFree = Tools::getMemFree();
 //        dd($MemFree);
 
@@ -58,7 +65,7 @@ class MainController extends BaseController
 //            ->where('sender_count','!=',null)
 ////            ->limit(10000)
 //            ->count();
-////        $a = ElasticSearchApi::es_install_data($engine_name,$a->toArray());
+////        $a = AppSearchApi::es_install_data($engine_name,$a->toArray());
 //        return response()->json($a);
     }
 
@@ -76,7 +83,7 @@ class MainController extends BaseController
             ->chunk(10000, function ($models) use ($engine_name) {
                 $lessModels = array_chunk($models->toArray(), 100, false);
                 foreach ($lessModels as $key => $value) {
-                    installESJob::dispatch($engine_name,$value);
+                    installAppSearchJob::dispatch($engine_name,$value);
                 }
             });
         }else if ($type == 1) {
@@ -91,7 +98,7 @@ class MainController extends BaseController
             ->chunk(10000, function ($models) use ($engine_name) {
                 $lessModels = array_chunk($models->toArray(), 100, false);
                 foreach ($lessModels as $key => $value) {
-                    installESJob::dispatch($engine_name,$value);
+                    installAppSearchJob::dispatch($engine_name,$value);
                 }
             });
         }
@@ -113,7 +120,7 @@ class MainController extends BaseController
                 $x = array_diff_key($x, ['updated_at' => "", "created_at" => "",'deleted_at'=>'']);
             }
             $a = Channel::upsert($data,[]);
-            installESJob::dispatch($engine_name,$data);
+            installAppSearchJob::dispatch($engine_name,$data);
         }else if ($type == 1) {
             $engine_name = 'groups';
 
@@ -410,7 +417,7 @@ class MainController extends BaseController
                     $channel = $value;
                     // 查es该频道最大msg_id
                     $scyllaDomain = env('SCYLLA_DB_GO');
-                    $urlSuffix = "/api/as/v1/engines/message/elasticsearch/_search";
+                    $urlSuffix = "/api/as/v1/engines/es-message/elasticsearch/_search";
                     $data = [
                         'query'=>[
                             'term'=>[
@@ -431,12 +438,12 @@ class MainController extends BaseController
                             ]
                         ]
                     ];
-                    $response = ElasticSearchApi::post($urlSuffix,$data);
+                    $response = AppSearchApi::post($urlSuffix,$data);
 //                    dd($response);
                     $msg_id = Arr::get($response, 'aggregations.max_msg_id.value') ?: 0;
                     $data = Http::get("{$scyllaDomain}/api/v1/msg/channel/backward?channel_id={$channel->id}&msg_id={$msg_id}")->json();
                     if ($data['data'] != null){
-                        $lessData = array_chunk($data['data']['channel_msg_list'], 100, false);
+                        $lessData = array_chunk($data['data']['channel_msg_list'], 500, false);
                         foreach ($lessData as $key => $value) {
                             $newValue = array_map(function($item) use ($channel) {
                                 $item['name'] = $channel->name;
@@ -445,10 +452,16 @@ class MainController extends BaseController
                                 $item['is_forward'] = (int)$item['is_forward'];//es那边不接受true、false
                                 $item['id'] = (string) Str::uuid();
                                 $item['uuid'] = $item['id'];
+                                $item['parent_status'] = $channel->status;
+                                $item['head_url'] = $channel->head_url;
+                                $item['entity_id'] = $channel->entity_id;
+                                $item['subscribers'] = $channel->subscribers;
+                                $item['parent_created_at'] = $channel->toArray()['created_at'];
+                                $item['parent_updated_at'] = $channel->toArray()['updated_at'];
+                                $item['parent_deleted_at'] = $channel->toArray()['deleted_at'];
                                 return $item;
                             }, $value);
-//                            ElasticSearchApi::es_install_data('message',$newValue,true);
-                            installESJob::dispatch('message',$newValue,true);
+                            installESJob::dispatch($newValue,'search-message');
                         }
                     }
                 }
