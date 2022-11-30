@@ -461,6 +461,8 @@ class MainController extends BaseController
                                 $item['parent_deleted_at'] = $channel->toArray()['deleted_at'];
                                 return $item;
                             }, $value);
+//                            $es = new ElasticSearchApi();
+//                            $es->updateOrCreate_bulk($newValue);
                             installESJob::dispatch($newValue,'search-message');
                         }
                     }
