@@ -405,7 +405,7 @@ class MainController extends BaseController
         $numbers = range($start,$end);
         Channel::whereIn('id',$numbers)
             ->whereIn('status',[0,100])
-            ->chunk(20, function ($models) {
+            ->chunk(100, function ($models) {
                 $MemFree = Tools::getMemFree();
                 Log::debug("当前剩余内存:{$MemFree}G");
                 if ($MemFree <= 0.5){
@@ -443,7 +443,7 @@ class MainController extends BaseController
                     $msg_id = Arr::get($response, 'aggregations.max_msg_id.value') ?: 0;
                     $data = Http::get("{$scyllaDomain}/api/v1/msg/channel/backward?channel_id={$channel->id}&msg_id={$msg_id}")->json();
                     if ($data['data'] != null){
-                        $lessData = array_chunk($data['data']['channel_msg_list'], 5000, false);
+                        $lessData = array_chunk($data['data']['channel_msg_list'], 2000, false);
                         foreach ($lessData as $key => $value) {
                             $newValue = array_map(function($item) use ($channel) {
                                 $item['name'] = $channel->name;
