@@ -40,34 +40,34 @@ class MainController extends BaseController
 
 
 
-//        $responses = Http::pool(fn (Pool $pool) => [
-//            $pool->async()->get('http://www.baidu.com')->then(function ($response) {
-//                echo 2;
-//                echo $response->status();
-//                $a = HTTP::get('http://www.baidu.com');
-//                echo $a->status();
-//
-//            }),
-//            $pool->async()->get('http://www.baidu.com')->then(function ($response) {
-//                echo 3;
-//                echo $response->status();
-//                $a = HTTP::get('http://www.baidu.com');
-//                echo $a->status();
-//            }),
-//            $pool->async()->get('http://www.baidu.com')->then(function ($response) {
-//                echo 4;
-//                echo $response->status();
-//                $a = HTTP::get('http://www.baidu.com');
-//                echo $a->status();
-//            })
-//        ]);
+        $responses = Http::pool(fn (Pool $pool) => [
+            $pool->async()->get('http://www.baidu.com')->then(function ($response) {
+                echo 2;
+                echo $response->status();
+                $a = HTTP::get('http://www.baidu.com');
+                echo $a->status();
+
+            }),
+            $pool->async()->get('http://www.baidu.com')->then(function ($response) {
+                echo 3;
+                echo $response->status();
+                $a = HTTP::get('http://www.baidu.com');
+                echo $a->status();
+            }),
+            $pool->async()->get('http://www.baidu.com')->then(function ($response) {
+                echo 4;
+                echo $response->status();
+                $a = HTTP::get('http://www.baidu.com');
+                echo $a->status();
+            })
+        ]);
 //        $promise =
 //        $promise->wait();
-//        echo 1;
+        echo 1;
 
 
-        Artisan::call('es:syncMessage 140000 140005');
-        dd(111);
+//        Artisan::call('es:syncMessage 140000 140005');
+//        dd(111);
 ////        $aa = ChannelMessage::groupBy('channel_id')
 ////            ->having('channel_id', '<', 100)
 //////            ->limit(1)
@@ -425,10 +425,11 @@ class MainController extends BaseController
             ->chunk(500, function ($models) {
                 $MemFree = Tools::getMemFree();
                 Log::debug("当前剩余内存:{$MemFree}G");
-                if ($MemFree <= 0.5){
+                if ($MemFree <= 1){
                     Log::error('内存太少了停止，不要继续塞数据到redis了');
                     exit();
                 }
+                $redisData = [];
                 // 定一个函数，里面拼接请求返回个Pool请求数组
                 $fn2 = function (Pool $pool) use ($models) {
                     foreach ($models as $value) {
@@ -485,10 +486,11 @@ class MainController extends BaseController
                                         $item['parent_deleted_at'] = $channel->toArray()['deleted_at'];
                                         return $item;
                                     }, $value);
-                                    Log::debug("将ID:{$channel->id}频道的消息提交到Redis");
-//                                    $es = new ElasticSearchApi();
-//                                    $es->updateOrCreate_bulk($newValue);
-                                    installESJob::dispatch($newValue,'search-message');
+                                    Log::debug("请求Go完毕");
+//                                    Log::debug("将ID:{$channel->id}频道的消息提交到Redis");
+////                                    $es = new ElasticSearchApi();
+////                                    $es->updateOrCreate_bulk($newValue);
+//                                    installESJob::dispatch($newValue,'search-message');
                                 }
                             }
                         });
@@ -496,6 +498,12 @@ class MainController extends BaseController
                     return $arrayPools;
                 };
                 $responses = \Illuminate\Support\Facades\Http::pool($fn2);
+                Log::debug("并发请求结束");
+                foreach ($redisData as $x){
+                    Log::debug("消息提交到Redis");
+                    installESJob::dispatch($x,'search-message');
+                }
+                Log::debug("提交结束");
             });
     }
 //    /**
