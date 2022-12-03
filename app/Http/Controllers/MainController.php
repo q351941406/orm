@@ -501,7 +501,6 @@ class MainController extends BaseController
                 Log::debug("并发请求结束");
                 Log::debug('准备提交'.count($redisData).'行数据到Redis');
                 foreach ($redisData as $x){
-                    Log::debug("1条消息准备提交到Redis");
                     installESJob::dispatch($x,'search-message');
                 }
                 Log::debug("提交结束");
