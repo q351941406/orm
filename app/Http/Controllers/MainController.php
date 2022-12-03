@@ -431,7 +431,7 @@ class MainController extends BaseController
                 }
                 $redisData = [];
                 // 定一个函数，里面拼接请求返回个Pool请求数组
-                $fn2 = function (Pool $pool) use ($models,$redisData) {
+                $fn2 = function (Pool $pool) use ($models,&$redisData) {
                     foreach ($models as $value) {
                         $channel = $value;
                         // 查es该频道最大msg_id
@@ -459,9 +459,8 @@ class MainController extends BaseController
                         $esDomain = env('ES_DOMAIN');
                         $key = env('ES_KEY');
                         // 这里发一个请求，再请求结果里再进行一次请求，相当于一次串行请求
-                        $arrayPools[] = $pool->async()->withToken($key)->withHeaders([
-                            'Content-Type' => 'application/json'
-                        ])->post("{$esDomain}{$urlSuffix}", $data)->then(function ($response) use($channel,$redisData) {
+                        $arrayPools[] = $pool->async()->withToken($key)->withHeaders(['Content-Type' => 'application/json'])
+                            ->post("{$esDomain}{$urlSuffix}", $data)->then(function ($response) use($channel,&$redisData) {
                             $response =  $response->json();
                             $msg_id = Arr::get($response, 'aggregations.max_msg_id.value') ?: 0;
                             $scyllaDomain = env('SCYLLA_DB_GO');
