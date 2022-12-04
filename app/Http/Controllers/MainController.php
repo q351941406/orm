@@ -71,7 +71,7 @@ class MainController extends BaseController
 //        echo 1;
 
 
-        Artisan::call('es:syncMessage 0 10');
+        Artisan::call('es:syncMessage 0 0');
         dd(111);
 ////        $aa = ChannelMessage::groupBy('channel_id')
 ////            ->having('channel_id', '<', 100)
@@ -426,10 +426,11 @@ class MainController extends BaseController
 
         $numbers = range($start,$end);
         $sql = Channel::whereIn('status',[0,100]);
-        if (count($numbers) == 1){
+        if (count($numbers) > 1){
             $sql->whereIn('id',$numbers);
         }
         $sql->chunk(100, function ($models) {
+            dd($models);
             $MemFree = Tools::getMemFree();
             Log::debug("当前剩余内存:{$MemFree}G");
             if ($MemFree <= 1){
