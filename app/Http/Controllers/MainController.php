@@ -427,16 +427,15 @@ class MainController extends BaseController
         $numbers = range($start,$end);
         Channel::whereIn('id',$numbers)
             ->whereIn('status',[0,100])
-            ->chunk(1000, function ($models) {
+            ->chunk(50, function ($models) {
                 $MemFree = Tools::getMemFree();
                 Log::debug("当前剩余内存:{$MemFree}G");
                 if ($MemFree <= 1){
                     Log::error('内存太少了停止，不要继续塞数据到redis了');
                     exit();
                 }
-                $redisData = [];
                 // 定一个函数，里面拼接请求返回个Pool请求数组
-                $fn2 = function (Pool $pool) use ($models,&$redisData) {
+                $fn2 = function (Pool $pool) use ($models) {
                     foreach ($models as $value) {
                         $channel = $value;
                         // 查es该频道最大msg_id
@@ -465,7 +464,7 @@ class MainController extends BaseController
                         $key = env('ES_KEY');
                         // 这里发一个请求，再请求结果里再进行一次请求，相当于一次串行请求
                         $arrayPools[] = $pool->async()->withToken($key)->withHeaders(['Content-Type' => 'application/json'])
-                            ->post("{$esDomain}{$urlSuffix}", $data)->then(function ($response) use($channel,&$redisData) {
+                            ->post("{$esDomain}{$urlSuffix}", $data)->then(function ($response) use($channel) {
                             $response =  $response->json();
                             $msg_id = Arr::get($response, 'aggregations.max_msg_id.value') ?: 0;
                             $scyllaDomain = env('SCYLLA_DB_GO');
@@ -490,12 +489,12 @@ class MainController extends BaseController
                                         $item['parent_deleted_at'] = $channel->toArray()['deleted_at'];
                                         return $item;
                                     }, $value);
-                                    Log::debug("频道ID:{$channel->id}请求Go完毕");
-                                    $redisData[] = $newValue;
-//                                    Log::debug("将ID:{$channel->id}频道的消息提交到Redis");
+//                                    Log::debug("频道ID:{$channel->id}请求Go完毕");
+//                                    $redisData[] = $newValue;
+                                    Log::debug("将ID:{$channel->id}频道的消息提交到Redis");
 //////                                    $es = new ElasticSearchApi();
 //////                                    $es->updateOrCreate_bulk($newValue);
-//                                    installESJob::dispatch($newValue,'search-message');
+                                    installESJob::dispatch($newValue,'search-message');
                                 }
                             }
                         });
@@ -504,11 +503,11 @@ class MainController extends BaseController
                 };
                 $responses = \Illuminate\Support\Facades\Http::pool($fn2);
                 Log::debug("并发请求结束");
-                Log::debug('准备提交'.count($redisData).'行数据到Redis');
-                foreach ($redisData as $x){
-                    installESJob::dispatch($x,'search-message');
-                }
-                Log::debug("提交结束");
+//                Log::debug('准备提交'.count($redisData).'行数据到Redis');
+//                foreach ($redisData as $x){
+//                    installESJob::dispatch($x,'search-message');
+//                }
+//                Log::debug("提交结束");
 
             });
     }
