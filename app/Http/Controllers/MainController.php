@@ -61,6 +61,10 @@ class MainController extends BaseController
                 echo $a->status();
             })
         ]);
+        foreach ($responses as $x){
+            $x->close();
+        }
+//        这里需要对调close方法关闭系统资源，否则并发太大会报错
 //        $promise =
 //        $promise->wait();
         echo 1;
@@ -504,6 +508,10 @@ class MainController extends BaseController
                     installESJob::dispatch($x,'search-message');
                 }
                 Log::debug("提交结束");
+                foreach ($responses as $x){
+                    $x->close();
+                }
+                Log::debug("关闭所有文件完毕");
             });
     }
 //    /**
