@@ -490,12 +490,12 @@ class MainController extends BaseController
                                         $item['parent_deleted_at'] = $channel->toArray()['deleted_at'];
                                         return $item;
                                     }, $value);
-//                                    Log::debug("频道ID:{$channel->id}请求Go完毕");
+                                    Log::debug("频道ID:{$channel->id}请求Go完毕");
                                     $redisData[] = $newValue;
-                                    Log::debug("将ID:{$channel->id}频道的消息提交到Redis");
-////                                    $es = new ElasticSearchApi();
-////                                    $es->updateOrCreate_bulk($newValue);
-                                    installESJob::dispatch($newValue,'search-message');
+//                                    Log::debug("将ID:{$channel->id}频道的消息提交到Redis");
+//////                                    $es = new ElasticSearchApi();
+//////                                    $es->updateOrCreate_bulk($newValue);
+//                                    installESJob::dispatch($newValue,'search-message');
                                 }
                             }
                         });
@@ -504,15 +504,12 @@ class MainController extends BaseController
                 };
                 $responses = \Illuminate\Support\Facades\Http::pool($fn2);
                 Log::debug("并发请求结束");
-//                Log::debug('准备提交'.count($redisData).'行数据到Redis');
-//                foreach ($redisData as $x){
-//                    installESJob::dispatch($x,'search-message');
-//                }
-//                Log::debug("提交结束");
-//                foreach ($responses as $x){
-//                    $x->close();
-//                }
-//                Log::debug("关闭所有文件完毕");
+                Log::debug('准备提交'.count($redisData).'行数据到Redis');
+                foreach ($redisData as $x){
+                    installESJob::dispatch($x,'search-message');
+                }
+                Log::debug("提交结束");
+
             });
     }
 //    /**
