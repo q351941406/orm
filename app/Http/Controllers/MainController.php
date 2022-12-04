@@ -430,7 +430,6 @@ class MainController extends BaseController
             $sql->whereIn('id',$numbers);
         }
         $sql->chunk(100, function ($models) {
-            dd($models);
             $MemFree = Tools::getMemFree();
             Log::debug("当前剩余内存:{$MemFree}G");
             if ($MemFree <= 1){
