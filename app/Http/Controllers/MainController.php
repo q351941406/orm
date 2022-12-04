@@ -427,7 +427,7 @@ class MainController extends BaseController
         $numbers = range($start,$end);
         Channel::whereIn('id',$numbers)
             ->whereIn('status',[0,100])
-            ->chunk(50, function ($models) {
+            ->chunk(200, function ($models) {
                 $MemFree = Tools::getMemFree();
                 Log::debug("当前剩余内存:{$MemFree}G");
                 if ($MemFree <= 1){
@@ -468,7 +468,7 @@ class MainController extends BaseController
                             $response =  $response->json();
                             $msg_id = Arr::get($response, 'aggregations.max_msg_id.value') ?: 0;
                             $scyllaDomain = env('SCYLLA_DB_GO');
-                            Log::debug("开始请求Go获取ID:{$channel->id}频道的消息");
+//                            Log::debug("开始请求Go获取ID:{$channel->id}频道的消息");
                             $data = Http::get("{$scyllaDomain}/api/v1/msg/channel/backward?channel_id={$channel->id}&msg_id={$msg_id}")->json();
                             if ($data['data'] != null){
                                 $lessData = array_chunk($data['data']['channel_msg_list'], 2000, false);
