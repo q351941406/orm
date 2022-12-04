@@ -427,7 +427,7 @@ class MainController extends BaseController
         $numbers = range($start,$end);
         Channel::whereIn('id',$numbers)
             ->whereIn('status',[0,100])
-            ->chunk(200, function ($models) {
+            ->chunk(100, function ($models) {
                 $MemFree = Tools::getMemFree();
                 Log::debug("当前剩余内存:{$MemFree}G");
                 if ($MemFree <= 1){
