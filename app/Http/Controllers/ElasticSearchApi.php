@@ -38,7 +38,8 @@ class ElasticSearchApi
                 'aggs' => [
                     'channelID'=>[
                         'terms'=>[
-                                'field'=>'channel_id'
+                                'field'=>'channel_id',
+                                'size'=>count($ids),//默认值统计10条
                         ],
                     'aggs' => [
                         'max_msg_id'=>[

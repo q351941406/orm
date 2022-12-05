@@ -38,6 +38,9 @@ class MainController extends BaseController
     public function test(Request $request)
     {
 
+//        $es = new ElasticSearchApi();
+//        $es_result = $es->getMaxMessageID('channel',[150,126]);
+//        dd($es_result);
 //        $responses = Http::pool(fn (Pool $pool) => [
 //            $pool->async()->get('http://www.baidu.com')->then(function ($response) {
 //                echo 2;
@@ -69,7 +72,7 @@ class MainController extends BaseController
 //        echo 1;
 
 
-    Artisan::call('es:syncMessage 170000 170001');
+    Artisan::call('es:syncMessage 126 150');
         dd(111);
 ////        $aa = ChannelMessage::groupBy('channel_id')
 ////            ->having('channel_id', '<', 100)
