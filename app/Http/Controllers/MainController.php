@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\AppSearchApi;
+use App\Http\Controllers\ElasticSearchApi;
 use App\Jobs\installESJob;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -25,7 +26,6 @@ use App\Models\ChannelMessage;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Artisan;
-use App\Http\Controllers\ElasticSearchApi;
 use Illuminate\Http\Client\Pool;
 
 // 0 = 频道，1 = 群组
@@ -37,8 +37,6 @@ class MainController extends BaseController
 
     public function test(Request $request)
     {
-
-
 
 //        $responses = Http::pool(fn (Pool $pool) => [
 //            $pool->async()->get('http://www.baidu.com')->then(function ($response) {
@@ -71,7 +69,7 @@ class MainController extends BaseController
 //        echo 1;
 
 
-        Artisan::call('es:syncMessage 0 0');
+    Artisan::call('es:syncMessage 170000 170001');
         dd(111);
 ////        $aa = ChannelMessage::groupBy('channel_id')
 ////            ->having('channel_id', '<', 100)
@@ -436,68 +434,47 @@ class MainController extends BaseController
                 Log::error('内存太少了停止，不要继续塞数据到redis了');
                 exit();
             }
+            $ids = Arr::pluck($models->toArray(), 'id');
+            $es = new ElasticSearchApi();
+            $es_result = $es->getMaxMessageID('channel',$ids);
             // 定一个函数，里面拼接请求返回个Pool请求数组
-            $fn2 = function (Pool $pool) use ($models) {
+            $fn2 = function (Pool $pool) use ($models,$es_result) {
                 foreach ($models as $value) {
                     $channel = $value;
-                    // 查es该频道最大msg_id
-                    $urlSuffix = "/api/as/v1/engines/es-message/elasticsearch/_search";
-                    $data = [
-                        'query'=>[
-                            'term'=>[
-                                'channel_id'=>$channel->id
-                            ]
-                        ],
-                        'runtime_mappings' => [// 动态修改字段类型，不然下面无法进行聚合计算，app search的类型和es的类型没关联
-                            'msg_id'=>[
-                                'type'=>'long'
-                            ]
-                        ],
-                        'size' => 0,
-                        'aggs' => [
-                            'max_msg_id'=>[
-                                'max'=>[
-                                    'field'=>'msg_id'
-                                ],
-                            ]
-                        ]
-                    ];
-                    $esDomain = env('ES_DOMAIN');
-                    $key = env('ES_KEY');
+                    $maxMessageID = Arr::get($es_result, (string)$channel->id,0);
+                    $scyllaDomain = env('SCYLLA_DB_GO');
+                    Log::debug("开始请求Go获取ID:{$channel->id}频道的消息");
                     // 这里发一个请求，再请求结果里再进行一次请求，相当于一次串行请求
-                    $arrayPools[] = $pool->async()->withToken($key)->withHeaders(['Content-Type' => 'application/json'])
-                        ->post("{$esDomain}{$urlSuffix}", $data)->then(function ($response) use($channel) {
-                            $response =  $response->json();
-                            $msg_id = Arr::get($response, 'aggregations.max_msg_id.value') ?: 0;
-                            $scyllaDomain = env('SCYLLA_DB_GO');
-                            Log::debug("开始请求Go获取ID:{$channel->id}频道的消息");
-                            $data = Http::get("{$scyllaDomain}/api/v1/msg/channel/backward?channel_id={$channel->id}&msg_id={$msg_id}")->json();
-                            if ($data['data'] != null){
-                                $lessData = array_chunk($data['data']['channel_msg_list'], 2000, false);
-                                foreach ($lessData as $key => $value) {
-                                    $newValue = array_map(function($item) use ($channel) {
-                                        $item['name'] = $channel->name;
-                                        $item['info'] = $channel->info;
-                                        $item['invite_link'] = $channel->invite_link;
-                                        $item['is_forward'] = (int)$item['is_forward'];//es那边不接受true、false
-                                        $item['id'] = (string) Str::uuid();
-                                        $item['uuid'] = $item['id'];
-                                        $item['parent_status'] = $channel->status;
-                                        $item['head_url'] = $channel->head_url;
-                                        $item['entity_id'] = $channel->entity_id;
-                                        $item['subscribers'] = $channel->subscribers;
-                                        $item['parent_created_at'] = $channel->toArray()['created_at'];
-                                        $item['parent_updated_at'] = $channel->toArray()['updated_at'];
-                                        $item['parent_deleted_at'] = $channel->toArray()['deleted_at'];
-                                        return $item;
-                                    }, $value);
-//                                    Log::debug("频道ID:{$channel->id}请求Go完毕");
-                                    Log::debug("将ID:{$channel->id}频道的消息提交到Redis");
-//////                                    $es = new ElasticSearchApi();
-//////                                    $es->updateOrCreate_bulk($newValue);
-                                    installESJob::dispatch($newValue,'search-message');
-                                }
-                            }
+                    $arrayPools[] = $pool->async()->get("{$scyllaDomain}/api/v1/msg/channel/backward?channel_id={$channel->id}&msg_id={$maxMessageID}")
+                                    ->then(function ($data) use($channel) {
+                                        $data = $data->json();
+                                        if ($data['data'] != null){
+                                            $lessData = array_chunk($data['data']['channel_msg_list'], 2000, false);
+                                            foreach ($lessData as $key => $value) {
+                                                $newValue = array_map(function($item) use ($channel) {
+                                                    $item['name'] = $channel->name;
+                                                    $item['info'] = $channel->info;
+                                                    $item['invite_link'] = $channel->invite_link;
+                                                    $item['is_forward'] = (int)$item['is_forward'];//es那边不接受true、false
+                                                    $item['id'] = (string) Str::uuid();
+                                                    $item['uuid'] = $item['id'];
+                                                    $item['parent_status'] = $channel->status;
+                                                    $item['head_url'] = $channel->head_url;
+                                                    $item['entity_id'] = $channel->entity_id;
+                                                    $item['subscribers'] = $channel->subscribers;
+                                                    $item['parent_created_at'] = $channel->toArray()['created_at'];
+                                                    $item['parent_updated_at'] = $channel->toArray()['updated_at'];
+                                                    $item['parent_deleted_at'] = $channel->toArray()['deleted_at'];
+                                                    return $item;
+                                                }, $value);
+                                                //                                    Log::debug("频道ID:{$channel->id}请求Go完毕");
+                                            Log::debug("将ID:{$channel->id}频道的消息提交到Redis");
+                                            //////                                    $es = new ElasticSearchApi();
+                                            //////                                    $es->updateOrCreate_bulk($newValue);
+//                                            dd($newValue);
+                                            installESJob::dispatch($newValue,'search-message');
+                                            }
+                                        }
                         });
                 }
                 return $arrayPools;
@@ -505,12 +482,5 @@ class MainController extends BaseController
             $responses = \Illuminate\Support\Facades\Http::pool($fn2);
             Log::debug("并发请求结束");
         });
-
-
-//        Channel::whereIn('id',$numbers)
-//            ->whereIn('status',[0,100])
-//            ->chunk(100, function ($models) {
-//
-//            });
     }
 }

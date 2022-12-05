@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use Elastic\Elasticsearch\ClientBuilder;
+use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -17,6 +18,48 @@ class ElasticSearchApi
             ->setApiKey('ZGZMdXg0UUJ4dWVneG9RcUVSZW46aGtTWVBVWEhUOUN3V1daM2pWZmpDZw==')
             ->build();
 
+    }
+    public function getMaxMessageID($type,$ids){
+        // 先用query内的terms进行条件限定,在agg内对channelID分组,然后在分组内进行max子聚合
+        $params = [
+            'index' => 'search-message',
+            'body' => [
+                'query'=>[
+                    'terms'=>[
+                            'channel_id'=>$ids
+                    ]
+                ],
+//                'runtime_mappings' => [// 动态修改字段类型，不然下面无法进行聚合计算，app search的类型和es的类型没关联
+//                    'msg_id'=>[
+//                        'type'=>'long'
+//                    ]
+//                ],
+                'size' => 0,// 0代表不需要详细__source数据
+                'aggs' => [
+                    'channelID'=>[
+                        'terms'=>[
+                                'field'=>'channel_id'
+                        ],
+                    'aggs' => [
+                        'max_msg_id'=>[
+                            'max'=>['field'=>'msg_id']
+                        ]
+                      ]
+                    ],
+                ]
+            ]
+        ];
+        try {
+            $response = $this->es->search($params);
+            $new = [];
+            array_map(function($item) use ( &$new){
+                $new[$item['key']] = $item['max_msg_id']['value'];
+                return $item;
+                }, $response->asArray()['aggregations']['channelID']['buckets']);
+            return $new;
+        }catch (ClientResponseException $e){
+            Log::error("ES返回错误:{$e->getMessage()}");
+        }
     }
     public function updateOrCreate_bulk($data,$index='search-message'){
         $params['body'] = [];
