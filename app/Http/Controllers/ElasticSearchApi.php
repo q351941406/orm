@@ -20,13 +20,19 @@ class ElasticSearchApi
 
     }
     public function getMaxMessageID($type,$ids){
+        $keyName = '';
+        if ($type === 'channel'){
+            $keyName = 'channel_id';
+        }else {
+            $keyName = 'group_id';
+        }
         // 先用query内的terms进行条件限定,在agg内对channelID分组,然后在分组内进行max子聚合
         $params = [
             'index' => 'search-message',
             'body' => [
                 'query'=>[
                     'terms'=>[
-                            'channel_id'=>$ids
+                            $keyName=>$ids
                     ]
                 ],
 //                'runtime_mappings' => [// 动态修改字段类型，不然下面无法进行聚合计算，app search的类型和es的类型没关联
@@ -38,7 +44,7 @@ class ElasticSearchApi
                 'aggs' => [
                     'channelID'=>[
                         'terms'=>[
-                                'field'=>'channel_id',
+                                'field'=>$keyName,
                                 'size'=>count($ids),//默认值统计10条
                         ],
                     'aggs' => [
@@ -62,7 +68,7 @@ class ElasticSearchApi
             Log::error("ES返回错误:{$e->getMessage()}");
         }
     }
-    public function updateOrCreate_bulk($data,$index='search-message'){
+    public function updateOrCreate_bulk($type,$data,$index='search-message'){
         $params['body'] = [];
         foreach ($data as $x){
             $params['body'][] = [
@@ -76,22 +82,36 @@ class ElasticSearchApi
         }
 
         $bulk_result = $this->bulk($params);
-
         // 更新uuid
-        Log::debug("当前消费正在上传:{$data[0]['channel_id']}");
-        $newData = array_map(function($item) {
-            // 过滤掉不要的数据，节省内存
+        if ($type === 'channel'){
+            Log::debug("当前消费正在上传:{$data[0]['channel_id']}");
+            $newData = array_map(function($item) {
+                // 过滤掉不要的数据，节省内存
             $item = Arr::except($item, ['hyperlinks','text','name','info',
-                'invite_link','deleted_at','updated_at',
-                'created_at','send_time','id',
-                'is_forward','views','parent_status','head_url',
-                'entity_id','subscribers','parent_created_at',
-                'parent_updated_at','parent_deleted_at']);
+            'invite_link','deleted_at','updated_at',
+            'created_at','send_time','id',
+            'is_forward','views','parent_status','head_url',
+            'entity_id','subscribers','parent_created_at',
+            'parent_updated_at','parent_deleted_at']);
             return $item;
-        }, $data);
-        $scyllaDomain = env('SCYLLA_DB_GO');
-        $result = Http::post("{$scyllaDomain}/api/v1/msg/channel/multi_update_uuid",['channel_msg_list'=>$newData]);
-
+            }, $data);
+            $scyllaDomain = env('SCYLLA_DB_GO');
+            $result = Http::post("{$scyllaDomain}/api/v1/msg/channel/multi_update_uuid",['channel_msg_list'=>$newData]);
+        }else {
+            Log::debug("当前消费正在上传:{$data[0]['group_id']}");
+            $newData = array_map(function($item) {
+                // 过滤掉不要的数据，节省内存
+            $item = Arr::except($item, ['hyperlinks','text','name','info',
+            'invite_link','deleted_at','updated_at',
+            'created_at','send_time','id',
+            'is_forward','views','parent_status','head_url',
+            'entity_id','subscribers','parent_created_at',
+            'parent_updated_at','parent_deleted_at','count','type']);
+            return $item;
+            }, $data);
+            $scyllaDomain = env('SCYLLA_DB_GO');
+            $result = Http::post("{$scyllaDomain}/api/v1/msg/group/multi_update_uuid",['group_msg_list'=>$newData]);
+        }
         return $bulk_result;
     }
 
@@ -101,6 +121,7 @@ class ElasticSearchApi
         $response = $this->es->bulk($params)->asArray();
         if ($response['errors']){
             Log::error('ES返回错误',$response['items']);
+            exit();
         }
         return $response;
     }

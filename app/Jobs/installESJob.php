@@ -18,16 +18,17 @@ class installESJob implements ShouldQueue
 
     protected $data;
     protected $index;
-
+    protected $type;
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($data,$index)
+    public function __construct($data,$index,$type)
     {
         $this->data = $data;
         $this->index = $index;
+        $this->type = $type;
     }
 
     /**
@@ -40,6 +41,6 @@ class installESJob implements ShouldQueue
     public function handle()
     {
         $es = new ElasticSearchApi();
-        $es->updateOrCreate_bulk($this->data,$this->index);
+        $es->updateOrCreate_bulk($this->type,$this->data,$this->index);
     }
 }
