@@ -19,7 +19,7 @@ class ElasticSearchApi
             ->build();
 
     }
-    public function getMaxMessageID($type,$ids){
+    public function getMaxMessageID($type,$ids,$indexName='search-message'){
         $keyName = '';
         if ($type === 'channel'){
             $keyName = 'channel_id';
@@ -28,7 +28,7 @@ class ElasticSearchApi
         }
         // 先用query内的terms进行条件限定,在agg内对channelID分组,然后在分组内进行max子聚合
         $params = [
-            'index' => 'search-message',
+            'index' => $indexName,
             'body' => [
                 'query'=>[
                     'terms'=>[
@@ -82,36 +82,36 @@ class ElasticSearchApi
         }
 
         $bulk_result = $this->bulk($params);
-        // 更新uuid
-        if ($type === 'channel'){
-            Log::debug("当前消费正在上传:{$data[0]['channel_id']}");
-            $newData = array_map(function($item) {
-                // 过滤掉不要的数据，节省内存
-            $item = Arr::except($item, ['hyperlinks','text','name','info',
-            'invite_link','deleted_at','updated_at',
-            'created_at','send_time','id',
-            'is_forward','views','parent_status','head_url',
-            'entity_id','subscribers','parent_created_at',
-            'parent_updated_at','parent_deleted_at']);
-            return $item;
-            }, $data);
-            $scyllaDomain = env('SCYLLA_DB_GO');
-            $result = Http::post("{$scyllaDomain}/api/v1/msg/channel/multi_update_uuid",['channel_msg_list'=>$newData]);
-        }else {
-            Log::debug("当前消费正在上传:{$data[0]['group_id']}");
-            $newData = array_map(function($item) {
-                // 过滤掉不要的数据，节省内存
-            $item = Arr::except($item, ['hyperlinks','text','name','info',
-            'invite_link','deleted_at','updated_at',
-            'created_at','send_time','id',
-            'is_forward','views','parent_status','head_url',
-            'entity_id','subscribers','parent_created_at',
-            'parent_updated_at','parent_deleted_at','count','type']);
-            return $item;
-            }, $data);
-            $scyllaDomain = env('SCYLLA_DB_GO');
-            $result = Http::post("{$scyllaDomain}/api/v1/msg/group/multi_update_uuid",['group_msg_list'=>$newData]);
-        }
+//        // 更新uuid
+//        if ($type === 'channel'){
+//            Log::debug("当前消费正在上传:{$data[0]['channel_id']}");
+//            $newData = array_map(function($item) {
+//                // 过滤掉不要的数据，节省内存
+//            $item = Arr::except($item, ['hyperlinks','text','name','info',
+//            'invite_link','deleted_at','updated_at',
+//            'created_at','send_time','id',
+//            'is_forward','views','parent_status','head_url',
+//            'entity_id','subscribers','parent_created_at',
+//            'parent_updated_at','parent_deleted_at']);
+//            return $item;
+//            }, $data);
+//            $scyllaDomain = env('SCYLLA_DB_GO');
+//            $result = Http::post("{$scyllaDomain}/api/v1/msg/channel/multi_update_uuid",['channel_msg_list'=>$newData]);
+//        }else {
+//            Log::debug("当前消费正在上传:{$data[0]['group_id']}");
+//            $newData = array_map(function($item) {
+//                // 过滤掉不要的数据，节省内存
+//            $item = Arr::except($item, ['hyperlinks','text','name','info',
+//            'invite_link','deleted_at','updated_at',
+//            'created_at','send_time','id',
+//            'is_forward','views','parent_status','head_url',
+//            'entity_id','subscribers','parent_created_at',
+//            'parent_updated_at','parent_deleted_at','count','type']);
+//            return $item;
+//            }, $data);
+//            $scyllaDomain = env('SCYLLA_DB_GO');
+//            $result = Http::post("{$scyllaDomain}/api/v1/msg/group/multi_update_uuid",['group_msg_list'=>$newData]);
+//        }
         return $bulk_result;
     }
 
