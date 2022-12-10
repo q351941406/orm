@@ -72,7 +72,7 @@ class MainController extends BaseController
 //        echo 1;
 
 
-    Artisan::call('es:syncMessage 0 20');
+//    Artisan::call('es:syncMessage 0 20');
         dd(111);
 ////        $aa = ChannelMessage::groupBy('channel_id')
 ////            ->having('channel_id', '<', 100)
