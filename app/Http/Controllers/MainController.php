@@ -38,7 +38,7 @@ class MainController extends BaseController
     public function test(Request $request)
     {
 
-        dd(111);
+//        dd(111);
 //        $es = new ElasticSearchApi();
 //        $es_result = $es->getMaxMessageID('channel',[150,126]);
 //        dd($es_result);
